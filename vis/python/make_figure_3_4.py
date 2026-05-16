@@ -36,6 +36,8 @@ COOLING_UNIT = PRESSURE / (TIME * (N_UNIT**2))  # Cooling rate unit
 CHI = 100.0
 GAMMA = 5.0/3.0
 
+global cold_frac, NY_fin, NY_init
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -54,8 +56,19 @@ NZ = 256
 max_level = 0
 DY = 40./NY
 T_inflection = (1.1e4 + 0.9e6)/2
+NY_init = int(max(NY*(cold_frac - 0.35), 0))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY))
 
 tanh_modelflag = False
+
+# both slice functions same as make_avg_arrays.py
+def slice_to_half(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin]
+
+def slice_to_half_2D(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin,:]
 
 def P_V_fn(Temp, Th, Tc, Tmin, Tmax):
     Trange = np.linspace(Tmin, Tmax, 1000)
@@ -244,7 +257,7 @@ if __name__ == "__main__":
         print('PRINTED FIGURE 3')
 
     # MAKING FITS FIGURE
-    if True:
+    if False:
         with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
             temp71to250__ = f['temp_vol_av'][3*NY//8:7*NY//8]
             prs_vol_av__ = f['p_vol_av'][3*NY//8:7*NY//8]
@@ -352,17 +365,16 @@ if __name__ == "__main__":
     if True:
         print('MAKING FIGURE 4')
         with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
-            temp71to2504 = f['temp_vol_av'][3*NY//8:7*NY//8]
-            z4 = np.linspace(-20, 20, NY)[3*NY//8:7*NY//8]
+            temp71to2504 = slice_to_half(f['temp_vol_av'])
+            z4 = slice_to_half(np.linspace(-20, 20, NY))
             P_E__T71to2504 = f['P_E__T_av']
             temp_range4 = f['temp_range']
-            emis_vol_av71to2504 = f['emis_vol_av'][3*NY//8:7*NY//8]
-
+            emis_vol_av71to2504 = slice_to_half(f['emis_vol_av'])
         with np.load(dir + f'KH_fluxes_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
-            Be_av_rhov2_av4 = f['Be_av_rhov2_av'][3*NY//8:7*NY//8]
-            del_Be_del_rhov2_av4 = f['del_Be_del_rhov2_av'][3*NY//8:7*NY//8]
-            edot_cool_cum_dx2_av4 = f['edot_cool_cum_dx2'][3*NY//8:7*NY//8]
-            net_heating_av4 = f['net_heating'][3*NY//8:7*NY//8]
+            Be_av_rhov2_av4 = slice_to_half(f['Be_av_rhov2_av'])
+            del_Be_del_rhov2_av4 = slice_to_half(f['del_Be_del_rhov2_av'])
+            edot_cool_cum_dx2_av4 = slice_to_half(f['edot_cool_cum_dx2'])
+            net_heating_av4 = slice_to_half(f['net_heating'])
 
         from scipy.signal import savgol_filter
 

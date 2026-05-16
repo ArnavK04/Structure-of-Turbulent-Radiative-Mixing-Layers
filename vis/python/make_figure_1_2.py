@@ -36,6 +36,8 @@ GAMMA = 5.0/3.0
 
 # De- dimensionalising facotrs
 
+global cold_frac, NY_fin, NY_init
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -54,7 +56,8 @@ NZ = 256
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
-# cell centre for ith cell is at i*DY + DY/2 + YMIN
+NY_init = int(max(NY*(cold_frac - 0.35), 0))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY))
 
 global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
@@ -70,6 +73,15 @@ dir = r"../../../Downloads/Trillium_data/snapsinvfid400lesspoint5sigma256_1024/"
 
 from save_2D_arrays_3D import ISMCoolFn
 
+# both slice functions same as make_avg_arrays.py
+def slice_to_half(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin]
+
+def slice_to_half_2D(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin,:]
+
 def plot_profiles():
 
     global dir, time_0, P_0, delU, T_h, T_inflection
@@ -77,15 +89,15 @@ def plot_profiles():
     Y = np.linspace(-20,20, NY)/(delU*time_0)
 
     with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
-        rho_av = f['rho_av'][3*NY//8:7*NY//8]
-        rho_mw_av = f['rho_mw_av'][3*NY//8:7*NY//8]
-        rho_sig = f['rho_sig'][3*NY//8:7*NY//8]
-        rho_vx1_av = f['rho_vx1_av'][3*NY//8:7*NY//8]
-        rho_vx1_sig = f['rho_vx1_sig'][3*NY//8:7*NY//8]
-        rho_vx2_av = f['rho_vx2_av'][3*NY//8:7*NY//8]
-        rho_vx2_sig = f['rho_vx2_sig'][3*NY//8:7*NY//8]
-        energy_dens_av = f['energy_dens_av'][3*NY//8:7*NY//8]
-        energy_dens_sig = f['energy_dens_sig'][3*NY//8:7*NY//8]
+        rho_av = slice_to_half(f['rho_av'])
+        rho_mw_av = slice_to_half(f['rho_mw_av'])
+        rho_sig = slice_to_half(f['rho_sig'])
+        rho_vx1_av = slice_to_half(f['rho_vx1_av'])
+        rho_vx1_sig = slice_to_half(f['rho_vx1_sig'])
+        rho_vx2_av = slice_to_half(f['rho_vx2_av'])
+        rho_vx2_sig = slice_to_half(f['rho_vx2_sig'])
+        energy_dens_av = slice_to_half(f['energy_dens_av'])
+        energy_dens_sig = slice_to_half(f['energy_dens_sig'])
         temp_vol71to250 = f['temp_vol_av']
 
     # fitting a tanh function to temp71to250
@@ -113,40 +125,40 @@ def plot_profiles():
     perr = np.sqrt(np.diag(pcov))
     z0_err = perr[1]
 
-    Y = Y[3*NY//8:7*NY//8]
-    temp_vol71to250 = temp_vol71to250[3*NY//8:7*NY//8]
+    Y = slice_to_half(Y)
+    temp_vol71to250 = slice_to_half(temp_vol71to250)
 
     fit_curve = T_tanh(Y, z0, T_h, T_c)/T_h
 
     with np.load(dir + f'KH_fluxes_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
-        rho_avXv2_av = f['rho_avXv2_av'][3*NY//8:7*NY//8]
-        rho_avXv2_sig = f['rho_avXv2_sig'][3*NY//8:7*NY//8]
-        rhov2_av = f['rhov2_av'][3*NY//8:7*NY//8]
-        rhov2_sig = f['rhov2_sig'][3*NY//8:7*NY//8]
-        delrho_delv2_av = f['delrho_delv2_av'][3*NY//8:7*NY//8]
-        delrho_delv2_sig = f['delrho_delv2_sig'][3*NY//8:7*NY//8]
-        rhov2_avXv1_av = f['rhov2_avXv1_av'][3*NY//8:7*NY//8]
-        rhov2_avXv1_sig = f['rhov2_avXv1_sig'][3*NY//8:7*NY//8]
-        rhov2v1_av = f['rhov2v1_av'][3*NY//8:7*NY//8]
-        rhov2v1_sig = f['rhov2v1_sig'][3*NY//8:7*NY//8]
-        R_xz = f['R_xz'][3*NY//8:7*NY//8]
-        R_xz_sig = f['R_xz_sig'][3*NY//8:7*NY//8]
-        rhov2_avXv2_av = f['rhov2_avXv2_av'][3*NY//8:7*NY//8]
-        rhov2_avXv2_sig = f['rhov2_avXv2_sig'][3*NY//8:7*NY//8]
-        R_zz = f['R_zz'][3*NY//8:7*NY//8]
-        R_zz_sig = f['R_zz_sig'][3*NY//8:7*NY//8]
-        p_av = f['p_av'][3*NY//8:7*NY//8]
-        p_sig = f['p_sig'][3*NY//8:7*NY//8]
-        P_rhovx2sqr_av = f['P_rhovx2sqr'][3*NY//8:7*NY//8]
-        P_rhovx2sqr_sig = f['P_rhovx2sqr_sig'][3*NY//8:7*NY//8]
-        Be_av_rhov2_av = f['Be_av_rhov2_av'][3*NY//8:7*NY//8]
-        Be_av_rhov2_sig = f['Be_av_rhov2_sig'][3*NY//8:7*NY//8]
-        del_Be_del_rhov2_av = f['del_Be_del_rhov2_av'][3*NY//8:7*NY//8]
-        del_Be_del_rhov2_sig = f['del_Be_del_rhov2_sig'][3*NY//8:7*NY//8]
-        edot_cool_cum_dx2_av = f['edot_cool_cum_dx2'][3*NY//8:7*NY//8]
-        edot_cool_cum_dx2_sig = f['edot_cool_cum_dx2_sig'][3*NY//8:7*NY//8]
-        net_heating_av = f['net_heating'][3*NY//8:7*NY//8]
-        net_heating_sig = f['net_heating_sig'][3*NY//8:7*NY//8]
+        rho_avXv2_av = slice_to_half(f['rho_avXv2_av'])
+        rho_avXv2_sig = slice_to_half(f['rho_avXv2_sig'])
+        rhov2_av = slice_to_half(f['rhov2_av'])
+        rhov2_sig = slice_to_half(f['rhov2_sig'])
+        delrho_delv2_av = slice_to_half(f['delrho_delv2_av'])
+        delrho_delv2_sig = slice_to_half(f['delrho_delv2_sig'])
+        rhov2_avXv1_av = slice_to_half(f['rhov2_avXv1_av'])
+        rhov2_avXv1_sig = slice_to_half(f['rhov2_avXv1_sig'])
+        rhov2v1_av = slice_to_half(f['rhov2v1_av'])
+        rhov2v1_sig = slice_to_half(f['rhov2v1_sig'])
+        R_xz = slice_to_half(f['R_xz'])
+        R_xz_sig = slice_to_half(f['R_xz_sig'])
+        rhov2_avXv2_av = slice_to_half(f['rhov2_avXv2_av'])
+        rhov2_avXv2_sig = slice_to_half(f['rhov2_avXv2_sig'])
+        R_zz = slice_to_half(f['R_zz'])
+        R_zz_sig = slice_to_half(f['R_zz_sig'])
+        p_av = slice_to_half(f['p_av'])
+        p_sig = slice_to_half(f['p_sig'])
+        P_rhovx2sqr_av = slice_to_half(f['P_rhovx2sqr'])
+        P_rhovx2sqr_sig = slice_to_half(f['P_rhovx2sqr_sig'])
+        Be_av_rhov2_av = slice_to_half(f['Be_av_rhov2_av'])
+        Be_av_rhov2_sig = slice_to_half(f['Be_av_rhov2_sig'])
+        del_Be_del_rhov2_av = slice_to_half(f['del_Be_del_rhov2_av'])
+        del_Be_del_rhov2_sig = slice_to_half(f['del_Be_del_rhov2_sig'])
+        edot_cool_cum_dx2_av = slice_to_half(f['edot_cool_cum_dx2'])
+        edot_cool_cum_dx2_sig = slice_to_half(f['edot_cool_cum_dx2_sig'])
+        net_heating_av = slice_to_half(f['net_heating'])
+        net_heating_sig = slice_to_half(f['net_heating_sig'])
 
     with np.load(dir + f'KH_fluxes_time_averaged{n1}to{n2-1}with{jump}.npz', 'r') as f:
         rho_avXv2_av71to130 = f['rho_avXv2_av']
@@ -239,34 +251,34 @@ def plot_profiles():
         net_heating_sig191to250 = f['net_heating_sig']
 
     with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n2-1}with{jump}.npz', 'r') as f:
-        rho_av_71to130 = f['rho_av'][3*NY//8:7*NY//8]
-        rho_sig_71to130 = f['rho_sig'][3*NY//8:7*NY//8]
-        rho_vx1_av_71to130 = f['rho_vx1_av'][3*NY//8:7*NY//8]
-        rho_vx1_sig_71to130 = f['rho_vx1_sig'][3*NY//8:7*NY//8]
-        rho_vx2_av_71to130 = f['rho_vx2_av'][3*NY//8:7*NY//8]
-        rho_vx2_sig_71to130 = f['rho_vx2_sig'][3*NY//8:7*NY//8]
-        energy_dens_av_71to130 = f['energy_dens_av'][3*NY//8:7*NY//8]
-        energy_dens_sig_71to130 = f['energy_dens_sig'][3*NY//8:7*NY//8]
+        rho_av_71to130 = slice_to_half(f['rho_av'])
+        rho_sig_71to130 = slice_to_half(f['rho_sig'])
+        rho_vx1_av_71to130 = slice_to_half(f['rho_vx1_av'])
+        rho_vx1_sig_71to130 = slice_to_half(f['rho_vx1_sig'])
+        rho_vx2_av_71to130 = slice_to_half(f['rho_vx2_av'])
+        rho_vx2_sig_71to130 = slice_to_half(f['rho_vx2_sig'])
+        energy_dens_av_71to130 = slice_to_half(f['energy_dens_av'])
+        energy_dens_sig_71to130 = slice_to_half(f['energy_dens_sig'])
 
     with np.load(dir + f'KH_1D_arrays_time_averaged{n2}to{n3-1}with{jump}.npz', 'r') as f:
-        rho_av_131to190 = f['rho_av'][3*NY//8:7*NY//8]
-        rho_sig_131to190 = f['rho_sig'][3*NY//8:7*NY//8]
-        rho_vx1_av_131to190 = f['rho_vx1_av'][3*NY//8:7*NY//8]
-        rho_vx1_sig_131to190 = f['rho_vx1_sig'][3*NY//8:7*NY//8]
-        rho_vx2_av_131to190 = f['rho_vx2_av'][3*NY//8:7*NY//8]
-        rho_vx2_sig_131to190 = f['rho_vx2_sig'][3*NY//8:7*NY//8]
-        energy_dens_av_131to190 = f['energy_dens_av'][3*NY//8:7*NY//8]
-        energy_dens_sig_131to190 = f['energy_dens_sig'][3*NY//8:7*NY//8]
+        rho_av_131to190 = slice_to_half(f['rho_av'])
+        rho_sig_131to190 = slice_to_half(f['rho_sig'])
+        rho_vx1_av_131to190 = slice_to_half(f['rho_vx1_av'])
+        rho_vx1_sig_131to190 = slice_to_half(f['rho_vx1_sig'])
+        rho_vx2_av_131to190 = slice_to_half(f['rho_vx2_av'])
+        rho_vx2_sig_131to190 = slice_to_half(f['rho_vx2_sig'])
+        energy_dens_av_131to190 = slice_to_half(f['energy_dens_av'])
+        energy_dens_sig_131to190 = slice_to_half(f['energy_dens_sig'])
 
     with np.load(dir + f'KH_1D_arrays_time_averaged{n3}to{n4}with{jump}.npz', 'r') as f:
-        rho_av_191to250 = f['rho_av'][3*NY//8:7*NY//8]
-        rho_sig_191to250 = f['rho_sig'][3*NY//8:7*NY//8]
-        rho_vx1_av_191to250 = f['rho_vx1_av'][3*NY//8:7*NY//8]
-        rho_vx1_sig_191to250 = f['rho_vx1_sig'][3*NY//8:7*NY//8]
-        rho_vx2_av_191to250 = f['rho_vx2_av'][3*NY//8:7*NY//8]
-        rho_vx2_sig_191to250 = f['rho_vx2_sig'][3*NY//8:7*NY//8]
-        energy_dens_av_191to250 = f['energy_dens_av'][3*NY//8:7*NY//8]
-        energy_dens_sig_191to250 = f['energy_dens_sig'][3*NY//8:7*NY//8]
+        rho_av_191to250 = slice_to_half(f['rho_av'])
+        rho_sig_191to250 = slice_to_half(f['rho_sig'])
+        rho_vx1_av_191to250 = slice_to_half(f['rho_vx1_av'])
+        rho_vx1_sig_191to250 = slice_to_half(f['rho_vx1_sig'])
+        rho_vx2_av_191to250 = slice_to_half(f['rho_vx2_av'])
+        rho_vx2_sig_191to250 = slice_to_half(f['rho_vx2_sig'])
+        energy_dens_av_191to250 = slice_to_half(f['energy_dens_av'])
+        energy_dens_sig_191to250 = slice_to_half(f['energy_dens_sig'])
 
     fig, ax = plt.subplots(4,2,figsize=(8, 10), constrained_layout=True)
 
@@ -389,32 +401,32 @@ def plot_profiles():
             ncol=1, frameon=False, fontsize=13, handlelength=1)
 
     with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz', 'r') as f:
-        vx1_vol71to250 = f['vx1_vol_av'][3*NY//8:7*NY//8]/delU
-        vx2_vol71to250 = f['vx2_vol_av'][3*NY//8:7*NY//8]/delU
-        vx2_vol71to250_sig = f['vx2_vol_sig'][3*NY//8:7*NY//8]/delU
-        vx1_vol71to250_sig = f['vx1_vol_sig'][3*NY//8:7*NY//8]/delU
-        temp_vol71to250 = f['temp_vol_av'][3*NY//8:7*NY//8]/T_h
-        temp_vol71to250_sig = f['temp_vol_sig'][3*NY//8:7*NY//8]/T_h
-        Be_vol71to250 = f['Be_vol_av'][3*NY//8:7*NY//8]/B_h
-        vx1_mw71to250 = f['vx1_mw_av'][3*NY//8:7*NY//8]/delU
-        vx2_mw71to250 = f['vx2_mw_av'][3*NY//8:7*NY//8]/delU
-        temp_mw71to250 = f['temp_mw_av'][3*NY//8:7*NY//8]/T_h
-        Be_mw71to250 = f['Be_mw_av'][3*NY//8:7*NY//8]/B_h
+        vx1_vol71to250 = slice_to_half(f['vx1_vol_av'])/delU
+        vx2_vol71to250 = slice_to_half(f['vx2_vol_av'])/delU
+        vx2_vol71to250_sig = slice_to_half(f['vx2_vol_sig'])/delU
+        vx1_vol71to250_sig = slice_to_half(f['vx1_vol_sig'])/delU
+        temp_vol71to250 = slice_to_half(f['temp_vol_av'])/T_h
+        temp_vol71to250_sig = slice_to_half(f['temp_vol_sig'])/T_h
+        Be_vol71to250 = slice_to_half(f['Be_vol_av'])/B_h
+        vx1_mw71to250 = slice_to_half(f['vx1_mw_av'])/delU
+        vx2_mw71to250 = slice_to_half(f['vx2_mw_av'])/delU
+        temp_mw71to250 = slice_to_half(f['temp_mw_av'])/T_h
+        Be_mw71to250 = slice_to_half(f['Be_mw_av'])/B_h
     with np.load(dir + f'KH_1D_arrays_time_averaged{n1}to{n2-1}with{jump}.npz', 'r') as f:
-        vx1_vol71to130 = f['vx1_vol_av'][3*NY//8:7*NY//8]/delU
-        vx2_vol71to130 = f['vx2_vol_av'][3*NY//8:7*NY//8]/delU
-        temp_vol71to130 = f['temp_vol_av'][3*NY//8:7*NY//8]/T_h
-        Be_vol71to130 = f['Be_vol_av'][3*NY//8:7*NY//8]/B_h
+        vx1_vol71to130 = slice_to_half(f['vx1_vol_av'])/delU
+        vx2_vol71to130 = slice_to_half(f['vx2_vol_av'])/delU
+        temp_vol71to130 = slice_to_half(f['temp_vol_av'])/T_h
+        Be_vol71to130 = slice_to_half(f['Be_vol_av'])/B_h
     with np.load(dir + f'KH_1D_arrays_time_averaged{n2}to{n3-1}with{jump}.npz', 'r') as f:
-        vx1_vol131to190 = f['vx1_vol_av'][3*NY//8:7*NY//8]/delU
-        vx2_vol131to190 = f['vx2_vol_av'][3*NY//8:7*NY//8]/delU
-        temp_vol131to190 = f['temp_vol_av'][3*NY//8:7*NY//8]/T_h
-        Be_vol131to190 = f['Be_vol_av'][3*NY//8:7*NY//8]/B_h
+        vx1_vol131to190 = slice_to_half(f['vx1_vol_av'])/delU
+        vx2_vol131to190 = slice_to_half(f['vx2_vol_av'])/delU
+        temp_vol131to190 = slice_to_half(f['temp_vol_av'])/T_h
+        Be_vol131to190 = slice_to_half(f['Be_vol_av'])/B_h
     with np.load(dir + f'KH_1D_arrays_time_averaged{n3}to{n4}with{jump}.npz', 'r') as f:
-        vx1_vol191to250 = f['vx1_vol_av'][3*NY//8:7*NY//8]/delU
-        vx2_vol191to250 = f['vx2_vol_av'][3*NY//8:7*NY//8]/delU
-        temp_vol191to250 = f['temp_vol_av'][3*NY//8:7*NY//8]/T_h
-        Be_vol191to250 = f['Be_vol_av'][3*NY//8:7*NY//8]/B_h
+        vx1_vol191to250 = slice_to_half(f['vx1_vol_av'])/delU
+        vx2_vol191to250 = slice_to_half(f['vx2_vol_av'])/delU
+        temp_vol191to250 = slice_to_half(f['temp_vol_av'])/T_h
+        Be_vol191to250 = slice_to_half(f['Be_vol_av'])/B_h
 
     ax[1,0].plot(Y, vx1_vol71to130, color='blue', linewidth=1.75, alpha=0.6)
     ax[1,0].plot(Y, vx1_vol131to190, color='red', linewidth=1.75, alpha=0.6)
@@ -584,16 +596,16 @@ def make_2D_paper_plots(i):
     print(f"Corrected Y_lim range = {Y_lims[0]} to {Y_lims[-1]}")
     print(f"Corrected Y_range_final range = {Y_range_final[0]} to {Y_range_final[-1]}")
 
-    im1 = ax[0,0].imshow(den[3*NY//8:7*NY//8,:]/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin=-10, vmax=110)
+    im1 = ax[0,0].imshow(slice_to_half_2D(den)/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=-10, vmax=110)
 
     # Adding streamlines
     X_coords = np.linspace(ex[0], ex[1], NX)
     Y_coords = Y_lims
-    Y_coords = Y_coords[3*NY//8:7*NY//8]
+    Y_coords = slice_to_half(Y_coords)
     X, Y = np.meshgrid(X_coords, Y_coords)
     with np.load(dir + 'KH_2D_Z_0_' + str(i).zfill(5) + '_C1.npz', 'r') as f:
-        vx1 = f['vx1'][3*NY//8:7*NY//8,:]
-        vx2 = f['vx2'][3*NY//8:7*NY//8,:]
+        vx1 = slice_to_half_2D(f['vx1'])
+        vx2 = slice_to_half_2D(f['vx2'])
 
     plt.sca(ax[0,0])
     plt.streamplot(X, Y, vx1, vx2, color='gray', linewidth=1, density=1, arrowsize=1, arrowstyle='->')
@@ -603,15 +615,15 @@ def make_2D_paper_plots(i):
     ax[0,0].set_xscale('linear')
     axlogx1.set_xscale('linear')
     axlogx1.set_xlim(-10, 110)
-    ax[0,0].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    axlogx1.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
+    ax[0,0].set_ylim(NY_init, NY_fin)
+    axlogx1.set_ylim(NY_init, NY_fin)
 
     cax = inset_axes(axlogx1, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=axlogx1.transAxes, borderpad=0)
     ax[0,0].text(0.75, 0.93, r"$\rho/\rho_h$", transform=ax[0,0].transAxes, ha='left', fontsize=16, color='white')
     axlogx1.plot(rho_av71to250/rho_h, Y_range_final, color='blue', linewidth=2, linestyle = '-', label=r"$\langle 146t_0-515t_0 \rangle_T$")
-    axlogx1.plot(den_vol[3*NY//8:7*NY//8]/rho_h, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$\langle \rho \rangle/\rho_h$")
+    axlogx1.plot(slice_to_half(den_vol)/rho_h, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$\langle \rho \rangle/\rho_h$")
     cbar = plt.colorbar(im1, cax=cax, orientation='horizontal')
     ax[0,0].tick_params(left=True, top = True, bottom=False, labeltop = True, labelleft=True, labelbottom=False)
     axlogx1.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, labelleft=False, labelright=False)
@@ -626,19 +638,19 @@ def make_2D_paper_plots(i):
 
     
 
-    im2 = ax[0,1].imshow(prs[3*NY//8:7*NY//8,:]/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin = 0.3, vmax = 1.5)
+    im2 = ax[0,1].imshow(slice_to_half_2D(prs)/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin), vmin = 0.3, vmax = 1.5)
     ax[0,1].set_xlim(ex[0], ex[1])
     ax[0,1].set_xscale('linear')
     axlogx2 = ax[0,1].twiny()
     axlogx2.set_xscale('linear')
     axlogx2.set_xlim(0.3, 1.5)
-    ax[0,1].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    axlogx2.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
+    ax[0,1].set_ylim(NY_init, NY_fin)
+    axlogx2.set_ylim(NY_init, NY_fin)
     cax2 = inset_axes(axlogx2, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=axlogx2.transAxes, borderpad=0)
     axlogx2.plot(p_av71to250/P_0, Y_range_final, color='blue', linewidth=2, linestyle = '-', label=r"$\langle 146t_0-515t_0 \rangle_T$")
-    axlogx2.plot(prs_vol[3*NY//8:7*NY//8]/P_0, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$\langle p \rangle/p_0$")
+    axlogx2.plot(slice_to_half(prs_vol)/P_0, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$\langle p \rangle/p_0$")
     ax[0,1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False, top = True, labeltop = True)
     axlogx2.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, labelleft=False, labelright=False)
     ax[0,1].set_xlabel(r"$x/\Delta u t_0$", fontsize=14)
@@ -656,17 +668,17 @@ def make_2D_paper_plots(i):
     t_cool = np.divide(b, (em), out=np.full_like(b, np.inf, dtype=float), where=em!=0)  # Cooling time in code units
     t_cool_av = 3.*prs_vol/(2.*(emis_vol)+1e-10)
     t_cool_av71to250 = 3.*p_av71to250/(2.*(emis_vol71to250)+1e-10)
-    im3 = ax[1,0].imshow(t_cool[3*NY//8:7*NY//8,:]/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]),vmin = 1e-1*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0),vmax = 1e3*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0))
+    im3 = ax[1,0].imshow(slice_to_half_2D(t_cool)/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin),vmin = 1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0),vmax = 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
 
     ax[1,0].set_xlim(ex[0], ex[1])
     ax[1,0].set_xscale('linear')
     ax_logx3 = ax[1,0].twiny()
     ax_logx3.set_xscale('log')
-    ax[1,0].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx3.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx3.set_xlim(1e-1*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0), 1e3*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0))
+    ax[1,0].set_ylim(NY_init, NY_fin)
+    ax_logx3.set_ylim(NY_init, NY_fin)
+    ax_logx3.set_xlim(1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0), 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
     ax_logx3.plot(t_cool_av71to250/time_0, Y_range_final, color='blue', linewidth=2, label=r"$ \langle \rangle_t : 146t_0-515t_0$")
-    ax_logx3.plot(t_cool_av[3*NY//8:7*NY//8]/time_0, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$t \approx 350t_0$")
+    ax_logx3.plot(slice_to_half(t_cool_av)/time_0, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$t \approx 350t_0$")
     cax3 = inset_axes(ax[1,0], width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=ax[1,0].transAxes, borderpad=0)
@@ -683,7 +695,7 @@ def make_2D_paper_plots(i):
     ax_logx3.set_xticks([])
     ax_logx3.xaxis.set_visible(False)
 
-    im4 = ax[1,1].imshow((v_turb_rms[3*NY//8:7*NY//8,:])/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin=1e-2, vmax=5)
+    im4 = ax[1,1].imshow((slice_to_half_2D(v_turb_rms))/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=1e-2, vmax=5)
     ax[1,1].set_xlim(ex[0], ex[1])
     ax[1,1].set_xscale('linear')
     #ax[1,0].set_ylabel(r"$z/\Delta u t_0$", fontsize=14)
@@ -696,14 +708,14 @@ def make_2D_paper_plots(i):
     ax_logx4 = ax[1,1].twiny()
     ax_logx4.set_xscale('log')
     ax_logx4.set_xlim(1e-2, 5)
-    ax[1,1].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx4.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx4.plot(vx1_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='lime', linewidth=1, linestyle = '--',label=r"$x$")
-    ax_logx4.plot(vx2_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='yellow', linewidth=1,linestyle = '--', label=r"$y$")
-    ax_logx4.plot(vx3_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='cyan', linewidth=1,linestyle = '--', label=r"$z$")
+    ax[1,1].set_ylim(NY_init, NY_fin)
+    ax_logx4.set_ylim(NY_init, NY_fin)
+    ax_logx4.plot(slice_to_half(vx1_turb_rms_vol)/delU, slice_to_half(Y_lims), color='lime', linewidth=1, linestyle = '--',label=r"$x$")
+    ax_logx4.plot(slice_to_half(vx2_turb_rms_vol)/delU, slice_to_half(Y_lims), color='yellow', linewidth=1,linestyle = '--', label=r"$y$")
+    ax_logx4.plot(slice_to_half(vx3_turb_rms_vol)/delU, slice_to_half(Y_lims), color='cyan', linewidth=1,linestyle = '--', label=r"$z$")
     ax_logx4.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, left=False, length=0)
     ax[1,1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False, top = False, labeltop=False)
-    ax_logx4.plot(v_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='white', linewidth=1,label=r"$3D$")
+    ax_logx4.plot(slice_to_half(v_turb_rms_vol)/delU, slice_to_half(Y_lims), color='white', linewidth=1,label=r"$3D$")
     legend = ax_logx4.legend(frameon=False, loc = 'lower right', fontsize=14)
     ax_logx4.set_xticks([])
     ax_logx4.xaxis.set_visible(False)
@@ -721,6 +733,10 @@ if __name__ == "__main__":
 
     global time_0, n1, n2, n3, n4, jump
     
+    T_0 = 1e5
+    time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
+    print(f"Cooling time at T_0 = {T_0} K is {time_mid} code units")
+
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
@@ -728,6 +744,7 @@ if __name__ == "__main__":
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
+    print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
     plt.figure(figsize=(8,6))
     plt.plot(np.logspace(4,6,1000), np.vectorize(ISMCoolFn)(np.logspace(4,6,1000)), color='blue')

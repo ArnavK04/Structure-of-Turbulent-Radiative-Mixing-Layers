@@ -2,16 +2,9 @@ import matplotlib
 matplotlib.use('Agg')  # Use a non-interactive backend for matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
-import sys
-import bin_convert
-import analyse_bin
 import math
-import matplotlib.cm as cm
 import gc  
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import matplotlib.patheffects as pe
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # Global constants
 MPI_DEF = False
