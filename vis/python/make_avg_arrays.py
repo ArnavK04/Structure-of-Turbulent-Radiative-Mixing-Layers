@@ -37,7 +37,8 @@ GAMMA = 5.0/3.0
 
 # De- dimensionalising facotrs
 
-#cold_frac = 0.6666667
+global cold_frac, NY_fin, NY_init
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -57,6 +58,8 @@ max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
 # cell centre for ith cell is at i*DY + DY/2 + YMIN
+NY_init = int(max(NY*(cold_frac - 0.35), 0))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY))
 
 global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
@@ -70,6 +73,14 @@ dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/b
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_5xmoredens_1040_cool/bin/"
 
 from save_2D_arrays_3D import ISMCoolFn
+
+def slice_to_half(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin]
+
+def slice_to_half_2D(arr):
+    global NY_init, NY_fin
+    return arr[NY_init:NY_fin,:]
 
 def find_temporal_z0(start, end, jump):
     # load temperature 1-D profiles from each npz file and fit them to a tanh profile
@@ -447,6 +458,11 @@ def make_1D(start, end, jump):
 
         Sigma_dot_cool_hist[count-1] = edot_cool_cum_dx2_av[-1]
 
+        from scipy.interpolate import interp1d
+
+        def interp(arr):
+            return interp1d(Y_lims, arr, kind="linear", fill_value="extrapolate")(Y_range_final)
+
         # interpolating all profiles to the same Y_lims (the one from the last file) before averaging, since the interface moves due to the TRML velocity and thus the transformed Y_lims of each file is different.
         rho_avXv2_av = interp(rho_avXv2_av)
         rhov2_av = interp(rhov2_av)
@@ -635,10 +651,10 @@ def make_PDF(start, end, jump):
 
 def make_spacetime_plots(end, trmlframeflag = False):
 
-    global delU, P_0, T_h, rho_h, time_0
+    global delU, P_0, T_h, rho_h, time_0, cold_frac, NY_init, NY_fin
     start = 0
     jump = 1
-    y_size = 7*NY//8 - 3*NY//8 
+    y_size = NY_fin - NY_init
 
     full_velx = np.zeros((end - start + 1, y_size))
     full_vely = np.zeros((end - start + 1, y_size))
@@ -666,7 +682,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
         frame = "trml_frame"
 
         with np.load(dir + 'KH_1D_arrays_snapshot_' + str(start).zfill(5) + f'C{F}.npz', 'r') as f:
-            Y_range_final = f['Y_lims'][3*NY//8:7*NY//8]
+            Y_range_final = slice_to_half(f['Y_lims'])
 
         for n in range(start,end+1, jump):
 
@@ -729,7 +745,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
             with np.load(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz', 'r') as f:
 
-                Y_lims = f['Y_lims'][3*NY//8:7*NY//8]
+                Y_lims = slice_to_half(f['Y_lims'])
                 rho_vol = f['den_vol']
                 vx1_vol = f['vx1_vol'] + v_TRML_1
                 vx2_vol = f['vx2_vol'] + v_TRML_2
@@ -739,14 +755,14 @@ def make_spacetime_plots(end, trmlframeflag = False):
                 ps_vol = f['ps_vol']
                 pseudo_entropy_vol = np.log10((p_vol/P_0)/((rho_vol/rho_h)**GAMMA))
 
-            full_velx[n, :] = vx1_vol[3*NY//8:7*NY//8]
-            full_vely[n, :] = vx2_vol[3*NY//8:7*NY//8]
-            full_velz[n, :] = vx3_vol[3*NY//8:7*NY//8]
-            full_temp[n, :] = temp_vol[3*NY//8:7*NY//8]
-            full_den[n, :] = rho_vol[3*NY//8:7*NY//8]
-            full_pres[n, :] = p_vol[3*NY//8:7*NY//8]
-            full_scalar[n, :] = ps_vol[3*NY//8:7*NY//8]
-            full_pseudo_entropy[n, :] = pseudo_entropy_vol[3*NY//8:7*NY//8]
+            full_velx[n, :] = slice_to_half(vx1_vol)
+            full_vely[n, :] = slice_to_half(vx2_vol)
+            full_velz[n, :] = slice_to_half(vx3_vol)
+            full_temp[n, :] = slice_to_half(temp_vol)
+            full_den[n, :] = slice_to_half(rho_vol)
+            full_pres[n, :] = slice_to_half(p_vol)
+            full_scalar[n, :] = slice_to_half(ps_vol)
+            full_pseudo_entropy[n, :] = slice_to_half(pseudo_entropy_vol)
 
         Y_range = Y_lims
 
@@ -864,7 +880,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
 def make_2D_paper_plots(i):
 
-    global dir, NX, NY, NZ, F, max_level, delU, time_0, rho_h, T_inflection, jump
+    global dir, NX, NY, NZ, F, max_level, delU, time_0, rho_h, T_inflection, jump, cold_frac, NY_init, NY_fin
 
     with np.load(dir + 'KH_2D_Z_0_' + str(i).zfill(5) + '_C1.npz', 'r') as f:
         den = f['den']
@@ -922,16 +938,16 @@ def make_2D_paper_plots(i):
     Y_lims -= y0
     Y_range_final -= y0
 
-    im1 = ax[0,0].imshow(den[3*NY//8:7*NY//8,:]/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin=-10, vmax=110)
+    im1 = ax[0,0].imshow(slice_to_half_2D(den)/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=-10, vmax=110)
 
     # Adding streamlines
     X_coords = np.linspace(ex[0], ex[1], NX)
     Y_coords = Y_lims
-    Y_coords = Y_coords[3*NY//8:7*NY//8]
+    Y_coords = slice_to_half(Y_coords)
     X, Y = np.meshgrid(X_coords, Y_coords)
     with np.load(dir + 'KH_2D_Z_0_' + str(i).zfill(5) + '_C1.npz', 'r') as f:
-        vx1 = f['vx1'][3*NY//8:7*NY//8,:]
-        vx2 = f['vx2'][3*NY//8:7*NY//8,:]
+        vx1 = slice_to_half_2D(f['vx1'])
+        vx2 = slice_to_half_2D(f['vx2'])
 
     plt.sca(ax[0,0])
     plt.streamplot(X, Y, vx1, vx2, color='gray', linewidth=1, density=1, arrowsize=1, arrowstyle='->')
@@ -941,15 +957,15 @@ def make_2D_paper_plots(i):
     ax[0,0].set_xscale('linear')
     axlogx1.set_xscale('linear')
     axlogx1.set_xlim(-10, 110)
-    ax[0,0].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    axlogx1.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
+    ax[0,0].set_ylim(NY_init, NY_fin)
+    axlogx1.set_ylim(NY_init, NY_fin)
 
     cax = inset_axes(axlogx1, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=axlogx1.transAxes, borderpad=0)
     ax[0,0].text(0.75, 0.93, r"$\rho/\rho_h$", transform=ax[0,0].transAxes, ha='left', fontsize=16, color='white')
     axlogx1.plot(rho_av71to250/rho_h, Y_range_final, color='blue', linewidth=2, linestyle = '-', label=r"$\langle 146t_0-515t_0 \rangle_T$")
-    axlogx1.plot(den_vol[3*NY//8:7*NY//8]/rho_h, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$\langle \rho \rangle/\rho_h$")
+    axlogx1.plot(slice_to_half(den_vol)/rho_h, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$\langle \rho \rangle/\rho_h$")
     cbar = plt.colorbar(im1, cax=cax, orientation='horizontal')
     ax[0,0].tick_params(left=True, top = True, bottom=False, labeltop = True, labelleft=True, labelbottom=False)
     axlogx1.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, labelleft=False, labelright=False)
@@ -962,19 +978,19 @@ def make_2D_paper_plots(i):
         spine.set_linewidth(1)  # thickness of border
         spine.set_edgecolor('black')  # color of border
 
-    im2 = ax[0,1].imshow(prs[3*NY//8:7*NY//8,:]/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin = 0.3, vmax = 1.5)
+    im2 = ax[0,1].imshow(slice_to_half_2D(prs)/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin), vmin = 0.3, vmax = 1.5)
     ax[0,1].set_xlim(ex[0], ex[1])
     ax[0,1].set_xscale('linear')
     axlogx2 = ax[0,1].twiny()
     axlogx2.set_xscale('linear')
     axlogx2.set_xlim(0.3, 1.5)
-    ax[0,1].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    axlogx2.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
+    ax[0,1].set_ylim(NY_init, NY_fin)
+    axlogx2.set_ylim(NY_init, NY_fin)
     cax2 = inset_axes(axlogx2, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=axlogx2.transAxes, borderpad=0)
     axlogx2.plot(p_av71to250/P_0, Y_range_final, color='blue', linewidth=2, linestyle = '-', label=r"$\langle 146t_0-515t_0 \rangle_T$")
-    axlogx2.plot(prs_vol[3*NY//8:7*NY//8]/P_0, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$\langle p \rangle/p_0$")
+    axlogx2.plot(slice_to_half(prs_vol)/P_0, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$\langle p \rangle/p_0$")
     ax[0,1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False, top = True, labeltop = True)
     axlogx2.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, labelleft=False, labelright=False)
     ax[0,1].set_xlabel(r"$x/\Delta u t_0$", fontsize=14)
@@ -992,17 +1008,17 @@ def make_2D_paper_plots(i):
     t_cool = np.divide(b, (em), out=np.full_like(b, np.inf, dtype=float), where=em!=0)  # Cooling time in code units
     t_cool_av = 3.*prs_vol/(2.*(emis_vol)+1e-10)
     t_cool_av71to250 = 3.*p_av71to250/(2.*(emis_vol71to250)+1e-10)
-    im3 = ax[1,0].imshow(t_cool[3*NY//8:7*NY//8,:]/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]),vmin = 1e-1*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0),vmax = 1e3*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0))
+    im3 = ax[1,0].imshow(slice_to_half_2D(t_cool)/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin),vmin = 1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0),vmax = 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
 
     ax[1,0].set_xlim(ex[0], ex[1])
     ax[1,0].set_xscale('linear')
     ax_logx3 = ax[1,0].twiny()
     ax_logx3.set_xscale('log')
-    ax[1,0].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx3.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx3.set_xlim(1e-1*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0), 1e3*np.min(t_cool_av71to250[3*NY//8:7*NY//8]/time_0))
+    ax[1,0].set_ylim(NY_init, NY_fin)
+    ax_logx3.set_ylim(NY_init, NY_fin)
+    ax_logx3.set_xlim(1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0), 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
     ax_logx3.plot(t_cool_av71to250/time_0, Y_range_final, color='blue', linewidth=2, label=r"$ \langle \rangle_t : 146t_0-515t_0$")
-    ax_logx3.plot(t_cool_av[3*NY//8:7*NY//8]/time_0, Y_lims[3*NY//8:7*NY//8], color='grey', linewidth=2, label=r"$t \approx 350t_0$")
+    ax_logx3.plot(slice_to_half(t_cool_av)/time_0, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$t \approx 350t_0$")
     cax3 = inset_axes(ax[1,0], width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=ax[1,0].transAxes, borderpad=0)
@@ -1019,7 +1035,7 @@ def make_2D_paper_plots(i):
     ax_logx3.set_xticks([])
     ax_logx3.xaxis.set_visible(False)
 
-    im4 = ax[1,1].imshow((v_turb_rms[3*NY//8:7*NY//8,:])/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], Y_lims[3*NY//8], Y_lims[7*NY//8-1]), vmin=1e-2, vmax=5)
+    im4 = ax[1,1].imshow((slice_to_half_2D(v_turb_rms))/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=1e-2, vmax=5)
     ax[1,1].set_xlim(ex[0], ex[1])
     ax[1,1].set_xscale('linear')
     #ax[1,0].set_ylabel(r"$z/\Delta u t_0$", fontsize=14)
@@ -1032,14 +1048,14 @@ def make_2D_paper_plots(i):
     ax_logx4 = ax[1,1].twiny()
     ax_logx4.set_xscale('log')
     ax_logx4.set_xlim(1e-2, 5)
-    ax[1,1].set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx4.set_ylim(Y_lims[3*NY//8], Y_lims[7*NY//8])
-    ax_logx4.plot(vx1_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='lime', linewidth=1, linestyle = '--',label=r"$x$")
-    ax_logx4.plot(vx2_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='yellow', linewidth=1,linestyle = '--', label=r"$y$")
-    ax_logx4.plot(vx3_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='cyan', linewidth=1,linestyle = '--', label=r"$z$")
+    ax[1,1].set_ylim(NY_init, NY_fin)
+    ax_logx4.set_ylim(NY_init, NY_fin)
+    ax_logx4.plot(slice_to_half(vx1_turb_rms_vol)/delU, slice_to_half(Y_lims), color='lime', linewidth=1, linestyle = '--',label=r"$x$")
+    ax_logx4.plot(slice_to_half(vx2_turb_rms_vol)/delU, slice_to_half(Y_lims), color='yellow', linewidth=1,linestyle = '--', label=r"$y$")
+    ax_logx4.plot(slice_to_half(vx3_turb_rms_vol)/delU, slice_to_half(Y_lims), color='cyan', linewidth=1,linestyle = '--', label=r"$z$")
     ax_logx4.tick_params(top=False, bottom=False, labeltop=False, labelbottom=False, left=False, length=0)
     ax[1,1].tick_params(left=False, bottom=False, labelleft=False, labelbottom=False, top = False, labeltop=False)
-    ax_logx4.plot(v_turb_rms_vol[3*NY//8:7*NY//8]/delU, Y_lims[3*NY//8:7*NY//8], color='white', linewidth=1,label=r"$3D$")
+    ax_logx4.plot(slice_to_half(v_turb_rms_vol)/delU, slice_to_half(Y_lims), color='white', linewidth=1,label=r"$3D$")
     legend = ax_logx4.legend(frameon=False, loc = 'lower right', fontsize=14)
     ax_logx4.set_xticks([])
     ax_logx4.xaxis.set_visible(False)
