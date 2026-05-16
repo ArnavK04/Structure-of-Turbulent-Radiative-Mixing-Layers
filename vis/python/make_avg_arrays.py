@@ -37,6 +37,7 @@ GAMMA = 5.0/3.0
 
 # De- dimensionalising facotrs
 
+#cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -835,18 +836,18 @@ def make_spacetime_plots(end, trmlframeflag = False):
         
         # Set limits and small fonts
         ax[i].set_xlim(timei, timef)
-        ax[i].tick_params(axis='both', labelsize=8)
-        ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=9)
+        ax[i].tick_params(axis='both', labelsize=10)
+        ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=11)
         
         # Only label the Y-axis on the first plot to save space
         if i == 0 or i == 4:
-            ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=9)
+            ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=11)
         else:
             ax[i].tick_params(labelleft=False)
 
         # Make the individual colorbar vertical on the right
         cbar = fig.colorbar(im, ax=ax[i], orientation='horizontal', location='top', pad=0.02)
-        cbar.ax.tick_params(labelsize=7)
+        cbar.ax.tick_params(labelsize=9)
         ax[i].text(0.05, 0.95,labels[i],transform=ax[i].transAxes,ha='left', va='top',fontsize=16,color='black',bbox=dict(facecolor='white',edgecolor='black',boxstyle='round,pad=0.2'))
 
         # Tight borders
