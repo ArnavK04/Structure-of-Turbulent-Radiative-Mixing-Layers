@@ -836,11 +836,11 @@ def make_spacetime_plots(end, trmlframeflag = False):
         # Set limits and small fonts
         ax[i].set_xlim(timei, timef)
         ax[i].tick_params(axis='both', labelsize=8)
-        ax[i].set_xlabel(r"$t/ t_0$", fontsize=9)
+        ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=9)
         
         # Only label the Y-axis on the first plot to save space
-        if i == 0:
-            ax[i].set_ylabel(r"$z/\Delta u t_0$", fontsize=9)
+        if i == 0 or i == 4:
+            ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=9)
         else:
             ax[i].tick_params(labelleft=False)
 
@@ -1086,6 +1086,10 @@ if __name__ == "__main__":
 
     global time_0
 
+    T_0 = 1e5
+    time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
+    print(f"Cooling time at T_0 = {T_0} K is {time_mid} code units")
+
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
@@ -1093,6 +1097,7 @@ if __name__ == "__main__":
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
+    print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
     n_i = 0
     n_f = 250
