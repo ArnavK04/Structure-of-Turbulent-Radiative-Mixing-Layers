@@ -931,7 +931,7 @@ def make_2D_paper_plots(i):
     Y_lims -= y0
     Y_range_final -= y0
 
-    im1 = ax[0,0].imshow(slice_to_half_2D(den)/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=-10, vmax=110)
+    im1 = ax[0,0].imshow(slice_to_half_2D(den)/rho_h, aspect='auto', origin='lower',cmap='inferno',extent = (ex[0], ex[1], Y_lims[NY_init], Y_lims[NY_fin]), vmin=-10, vmax=110)
 
     # Adding streamlines
     X_coords = np.linspace(ex[0], ex[1], NX)
@@ -950,8 +950,8 @@ def make_2D_paper_plots(i):
     ax[0,0].set_xscale('linear')
     axlogx1.set_xscale('linear')
     axlogx1.set_xlim(-10, 110)
-    ax[0,0].set_ylim(NY_init, NY_fin)
-    axlogx1.set_ylim(NY_init, NY_fin)
+    ax[0,0].set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
+    axlogx1.set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
 
     cax = inset_axes(axlogx1, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
@@ -971,14 +971,14 @@ def make_2D_paper_plots(i):
         spine.set_linewidth(1)  # thickness of border
         spine.set_edgecolor('black')  # color of border
 
-    im2 = ax[0,1].imshow(slice_to_half_2D(prs)/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin), vmin = 0.3, vmax = 1.5)
+    im2 = ax[0,1].imshow(slice_to_half_2D(prs)/P_0, aspect='auto', origin='lower', cmap='inferno', extent = (ex[0], ex[1], Y_lims[NY_init], Y_lims[NY_fin]), vmin = 0.3, vmax = 1.5)
     ax[0,1].set_xlim(ex[0], ex[1])
     ax[0,1].set_xscale('linear')
     axlogx2 = ax[0,1].twiny()
     axlogx2.set_xscale('linear')
     axlogx2.set_xlim(0.3, 1.5)
-    ax[0,1].set_ylim(NY_init, NY_fin)
-    axlogx2.set_ylim(NY_init, NY_fin)
+    ax[0,1].set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
+    axlogx2.set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
     cax2 = inset_axes(axlogx2, width="100%", height="3%", loc='lower center',
                     bbox_to_anchor=(0, -0.05, 1, 1),
                     bbox_transform=axlogx2.transAxes, borderpad=0)
@@ -1001,14 +1001,14 @@ def make_2D_paper_plots(i):
     t_cool = np.divide(b, (em), out=np.full_like(b, np.inf, dtype=float), where=em!=0)  # Cooling time in code units
     t_cool_av = 3.*prs_vol/(2.*(emis_vol)+1e-10)
     t_cool_av71to250 = 3.*p_av71to250/(2.*(emis_vol71to250)+1e-10)
-    im3 = ax[1,0].imshow(slice_to_half_2D(t_cool)/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], NY_init, NY_fin),vmin = 1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0),vmax = 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
+    im3 = ax[1,0].imshow(slice_to_half_2D(t_cool)/time_0, aspect='auto', origin='lower', norm = 'log', cmap='inferno', extent = (ex[0], ex[1], Y_lims[NY_init], Y_lims[NY_fin]),vmin = 1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0),vmax = 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
 
     ax[1,0].set_xlim(ex[0], ex[1])
     ax[1,0].set_xscale('linear')
     ax_logx3 = ax[1,0].twiny()
     ax_logx3.set_xscale('log')
-    ax[1,0].set_ylim(NY_init, NY_fin)
-    ax_logx3.set_ylim(NY_init, NY_fin)
+    ax[1,0].set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
+    ax_logx3.set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
     ax_logx3.set_xlim(1e-1*np.min(slice_to_half(t_cool_av71to250)/time_0), 1e3*np.min(slice_to_half(t_cool_av71to250)/time_0))
     ax_logx3.plot(t_cool_av71to250/time_0, Y_range_final, color='blue', linewidth=2, label=r"$ \langle \rangle_t : 146t_0-515t_0$")
     ax_logx3.plot(slice_to_half(t_cool_av)/time_0, slice_to_half(Y_lims), color='grey', linewidth=2, label=r"$t \approx 350t_0$")
@@ -1028,7 +1028,7 @@ def make_2D_paper_plots(i):
     ax_logx3.set_xticks([])
     ax_logx3.xaxis.set_visible(False)
 
-    im4 = ax[1,1].imshow((slice_to_half_2D(v_turb_rms))/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], NY_init, NY_fin), vmin=1e-2, vmax=5)
+    im4 = ax[1,1].imshow((slice_to_half_2D(v_turb_rms))/delU, aspect='auto', origin='lower', norm = 'log', cmap='inferno',extent = (ex[0], ex[1], Y_lims[NY_init], Y_lims[NY_fin]), vmin=1e-2, vmax=5)
     ax[1,1].set_xlim(ex[0], ex[1])
     ax[1,1].set_xscale('linear')
     #ax[1,0].set_ylabel(r"$z/\Delta u t_0$", fontsize=14)
@@ -1041,8 +1041,8 @@ def make_2D_paper_plots(i):
     ax_logx4 = ax[1,1].twiny()
     ax_logx4.set_xscale('log')
     ax_logx4.set_xlim(1e-2, 5)
-    ax[1,1].set_ylim(NY_init, NY_fin)
-    ax_logx4.set_ylim(NY_init, NY_fin)
+    ax[1,1].set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
+    ax_logx4.set_ylim(Y_lims[NY_init], Y_lims[NY_fin])
     ax_logx4.plot(slice_to_half(vx1_turb_rms_vol)/delU, slice_to_half(Y_lims), color='lime', linewidth=1, linestyle = '--',label=r"$x$")
     ax_logx4.plot(slice_to_half(vx2_turb_rms_vol)/delU, slice_to_half(Y_lims), color='yellow', linewidth=1,linestyle = '--', label=r"$y$")
     ax_logx4.plot(slice_to_half(vx3_turb_rms_vol)/delU, slice_to_half(Y_lims), color='cyan', linewidth=1,linestyle = '--', label=r"$z$")
