@@ -1065,12 +1065,12 @@ def make_2D_paper_plots(i):
     plt.close(fig)
 
 def plot_sliced_PDFs(axis, number):
-    slices = 19
+    slices = 39
     for n in range(number, number + 1):
         print(n)
         plt.figure(figsize=(16, 9))
         for i in range(0, slices+1):
-            plt.subplot(4, 5, i+1)
+            plt.subplot(5, 8, i+1)
             with np.load(dir+'KH_tempPDF_snapshot_'+str(n).zfill(5)+f'C{1}_axis{axis}_slice{i}.npz') as data:
                 bin_centers_ = data['bin_centers']
                 hist_mass_ = data['hist_mass']
@@ -1081,13 +1081,13 @@ def plot_sliced_PDFs(axis, number):
             plt.plot(bin_centers_, hist_emis_, label=r'$\mathcal{P}_E$')
             plt.yscale('log')
             plt.grid(which='both', axis='both', linestyle='--', linewidth=0.25, color='gray')
-            if (i+1)%5 != 1:
+            if (i+1)%8 != 1:
                 plt.yticks([])
-            if (i+1) <= 15:
+            if (i+1) <= 31:
                 plt.xticks([])
             plt.xlim(3.9,6.05)
             plt.ylim(1e-3, 50)
-        plt.suptitle(f'Sliced PDFs for Snapshot {n} along {axis}-axis, y = {round(-20+(1/2)*40,2)}-{round(-20+(7/8)*40, 2)}', fontsize=16)
+        plt.suptitle(f'Sliced PDFs for Snapshot {n} along {axis}-axis', fontsize=16)
         plt.legend()
         plt.tight_layout()
         #plt.show()

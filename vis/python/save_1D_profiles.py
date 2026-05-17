@@ -582,7 +582,7 @@ def main():
     vx3max = 50
 
     global slices
-    slices = 20
+    slices = 40
 
     del den_, vx1_, prs_, temp_
     gc.collect()
@@ -594,14 +594,6 @@ def main():
         vely = vely - v2_tRML_local_
         Save1D_arrays(dens, velx, velz, ps, prs, vely, temp, t, i, F)
         MakePDF_snapshots(dens, velx, velz, ps, prs, vely, temp, t, i, F, axis='none', slice=1)
-        #MakeJointPDFs(dens, velx, velz, ps, prs, vely, temp, t, i, F, 'v')        
-        dens = dens[:, NY//2:7*NY//8,:]
-        velx = velx[:, NY//2:7*NY//8,:]
-        velz = velz[:, NY//2:7*NY//8,:]
-        ps = ps[:, NY//2:7*NY//8,:]
-        prs = prs[:, NY//2:7*NY//8,:]
-        vely = vely[:, NY//2:7*NY//8,:]
-        temp = temp[:, NY//2:7*NY//8,:]
         MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, i, F, slices, axis='y')
         MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, i, F, slices, axis='x')
         MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, i, F, slices, axis='z')
@@ -619,13 +611,6 @@ def main():
             Save1D_arrays(dens, velx, velz, ps, prs, vely, temp, t, n, F)
             MakePDF_snapshots(dens, velx, velz, ps, prs, vely, temp, t, n, F, axis='none', slice=1)
             #MakeJointPDFs(dens, velx, velz, ps, prs, vely, temp, t, n, F, 'v')
-            dens = dens[:, NY//2:7*NY//8,:]
-            velx = velx[:, NY//2:7*NY//8,:]
-            velz = velz[:, NY//2:7*NY//8,:]
-            ps = ps[:, NY//2:7*NY//8,:]
-            prs = prs[:, NY//2:7*NY//8,:]
-            vely = vely[:, NY//2:7*NY//8,:]
-            temp = temp[:, NY//2:7*NY//8,:]
             MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, n, F, slices, axis='y')
             MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, n, F, slices, axis='x')
             MakeSlicedPDFs(dens, velx, velz, ps, prs, vely, temp, t, n, F, slices, axis='z')

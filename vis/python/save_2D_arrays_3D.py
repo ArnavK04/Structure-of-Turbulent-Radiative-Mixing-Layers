@@ -115,7 +115,7 @@ def ISMCoolFn_stock(temp):
     logcool = (lhd[ipps+1]*dx - lhd[ipps]*(dx - 0.04))*25.0
     return pow(10.0,logcool)
 
-def ISMCoolFn_inv4000les(temp):
+def ISMCoolFn(temp):
     mean  = 5.0
     sigma = 0.2
 
@@ -126,7 +126,7 @@ def ISMCoolFn_inv4000les(temp):
     lambda_T = math.exp(0.5 * ((logt - mean)/sigma)*((logt - mean)/sigma))
 
     norm = 5.253246378625558e-28
-    return (norm/40.0) * lambda_T
+    return (norm/4.0) * lambda_T
 
 def ISMCoolFn_normlog(temp):
     mean  = 5.0
@@ -141,7 +141,7 @@ def ISMCoolFn_normlog(temp):
     norm = 5.4591716620684276e-21
     return norm * lambda_T
 
-def ISMCoolFn(temp):
+def ISMCoolFn_const100less(temp):
     # return a constant cooling rate 
     if (temp < 1.05e4) or (temp > 0.95e6):
         return 0.0
