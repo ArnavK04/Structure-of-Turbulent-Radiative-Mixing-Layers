@@ -93,9 +93,9 @@ def find_temporal_z0(start, end, jump):
         Tc0 = np.min(temp_vol)
         Th0 = np.max(temp_vol)
         dTdz = np.gradient(temp_vol, Y)
-        z0_guess = Y[np.argmax(np.abs(dTdz))]
+        x0_guess = Y[np.argmax(np.abs(dTdz))]
         slope_max = np.max(np.abs(dTdz))
-        x0_guess = (Th0 - Tc0) / (2 * slope_max)
+        z0_guess = (Th0 - Tc0) / (2 * slope_max)
         p0 = [x0_guess, z0_guess, Th0, Tc0]
 
         # fitting a tanh function to temp71to250
@@ -915,9 +915,9 @@ def make_2D_paper_plots(i):
     Tc0 = np.min(temp_vol71to250)
     Th0 = np.max(temp_vol71to250)
     dTdz = np.gradient(temp_vol71to250, Y_lims)
-    z0_guess = Y_lims[np.argmax(np.abs(dTdz))]
+    x0_guess = Y_lims[np.argmax(np.abs(dTdz))]
     slope_max = np.max(np.abs(dTdz))
-    x0_guess = (Th0 - Tc0) / (2 * slope_max)
+    z0_guess = (Th0 - Tc0) / (2 * slope_max)
     p0 = [x0_guess, z0_guess, Th0, Tc0]
 
 

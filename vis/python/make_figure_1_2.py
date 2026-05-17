@@ -105,16 +105,16 @@ def plot_profiles():
     Tc0 = np.min(temp_vol71to250)
     Th0 = np.max(temp_vol71to250)
     dTdz = np.gradient(temp_vol71to250, Y)
-    z0_guess = Y[np.argmax(np.abs(dTdz))]
+    x0_guess = Y[np.argmax(np.abs(dTdz))]
     slope_max = np.max(np.abs(dTdz))
-    x0_guess = (Th0 - Tc0) / (2 * slope_max)
+    z0_guess = (Th0 - Tc0) / (2 * slope_max)
     p0 = [x0_guess, z0_guess, Th0, Tc0]
 
     # fitting a tanh function to temp71to250
     from scipy.optimize import curve_fit
     def T_tanh_model(z, x0, z0, Th, Tc):
         return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
-    popt, pcov = curve_fit(T_tanh_model, Y, temp_vol71to250, p0=p0)
+    popt, pcov = curve_fit(T_tanh_model, Y, temp_vol71to250, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
     print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
     z0 = popt[1]
     x0 = popt[0]
@@ -578,16 +578,16 @@ def make_2D_paper_plots(i):
     Tc0 = np.min(temp_vol71to250)
     Th0 = np.max(temp_vol71to250)
     dTdz = np.gradient(temp_vol71to250, Y_lims)
-    z0_guess = Y_lims[np.argmax(np.abs(dTdz))]
+    x0_guess = Y_lims[np.argmax(np.abs(dTdz))]
     slope_max = np.max(np.abs(dTdz))
-    x0_guess = (Th0 - Tc0) / (2 * slope_max)
+    z0_guess = (Th0 - Tc0) / (2 * slope_max)
     p0 = [x0_guess, z0_guess, Th0, Tc0]
 
     # fitting a tanh function to temp71to250
     from scipy.optimize import curve_fit
     def T_tanh_model(z, x0, z0, Th, Tc):
         return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
-    popt, pcov = curve_fit(T_tanh_model, Y_lims, temp_vol71to250, p0=p0)
+    popt, pcov = curve_fit(T_tanh_model, Y_lims, temp_vol71to250, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
     print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
     z0 = popt[1]
     y0 = popt[0]
