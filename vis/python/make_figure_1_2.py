@@ -84,7 +84,7 @@ def slice_to_half_2D(arr):
 
 def plot_profiles():
 
-    global dir, time_0, P_0, delU, T_h, T_inflection
+    global dir, time_0, P_0, delU, T_h, T_inflection, time_mid
 
     Y = np.linspace(-20,20, NY)/(delU*time_0)
 
@@ -527,6 +527,9 @@ def plot_profiles():
         f.write(f'R_xz min value = {R_xz.min()} +- {R_xz_sig[np.argmin(R_xz)]} at z = {Y[np.argmin(R_xz)]}\n')
         f.write(f'R_zz max value = {R_zz.max()} +- {R_zz_sig[np.argmax(R_zz)]} at z = {Y[np.argmax(R_zz)]}\n')
         f.write(f'Q_t min value = {del_Be_del_rhov2_av.min()} +- {del_Be_del_rhov2_sig[np.argmin(del_Be_del_rhov2_av)]} at z = {Y[np.argmin(del_Be_del_rhov2_av)]}\n')
+        f.write(f'time_0 = {time_0}\n')
+        f.write(f'time_mid = {time_mid}\n')
+        f.write(f'time_mid/time_0 = {time_mid/time_0}\n')
 
 def make_2D_paper_plots(i):
 
@@ -731,7 +734,7 @@ def make_2D_paper_plots(i):
 
 if __name__ == "__main__":
 
-    global time_0, n1, n2, n3, n4, jump
+    global time_0, n1, n2, n3, n4, jump, time_mid
     
     T_0 = 1e5
     time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)

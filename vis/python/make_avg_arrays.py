@@ -31,7 +31,7 @@ GAMMA = 5.0/3.0
 # De- dimensionalising facotrs
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.6666667
+cold_frac = 0.3333333
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -44,9 +44,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 280
-NY = 1040
-NZ = 280
+NX = 256
+NY = 1024
+NZ = 256
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -58,8 +58,8 @@ global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-#dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/invertedfiducial4000less256_1024/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/constfiducial100less256_1024_1_3cold/bin/"
+#dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
@@ -102,7 +102,7 @@ def find_temporal_z0(start, end, jump):
         from scipy.optimize import curve_fit
         def T_tanh_model(z, x0, z0, Th, Tc):
             return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
-        popt, pcov = curve_fit(T_tanh_model, Y, temp_vol, p0=p0)
+        popt, pcov = curve_fit(T_tanh_model, Y, temp_vol, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
         print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}, for snapshot {n}')
         z0 = popt[1]
         x0 = popt[0]
@@ -924,7 +924,7 @@ def make_2D_paper_plots(i):
     from scipy.optimize import curve_fit
     def T_tanh_model(z, x0, z0, Th, Tc):
         return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
-    popt, pcov = curve_fit(T_tanh_model, Y_range_final, temp_vol71to250, p0=p0)
+    popt, pcov = curve_fit(T_tanh_model, Y_range_final, temp_vol71to250, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
     print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
     z0 = popt[1]
     y0 = popt[0]
@@ -1112,7 +1112,7 @@ if __name__ == "__main__":
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
     n_i = 0
-    n_f = 250
+    n_f = 125
     if MPI_DEF:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -1123,8 +1123,8 @@ if __name__ == "__main__":
         N1_local = rank * nfiles_local + n_i
         N2_local = (rank + 1) * nfiles_local + n_i
     global n1, n2, n3, n4
-    n1 = 71
-    n4 = 250
+    n1 = 36
+    n4 = 125
     n2 = n1 + (n4 - n1 +1)//3
     n3 = n2 + (n4 - n1 +1)//3
     begin = n1
@@ -1133,21 +1133,21 @@ if __name__ == "__main__":
     global jump
     jump = skip
     if not MPI_DEF:
-        find_temporal_z0(0,250,skip)
-        make_1D(0,250,skip)
+        find_temporal_z0(0,125,skip)
+        make_1D(0,125,skip)
         print("1D arrays created successfully.")
-        make_spacetime_plots(250, trmlframeflag = True)
+        make_spacetime_plots(125, trmlframeflag = True)
         print("Spacetime plots in TRML frame created successfully.")
-        make_spacetime_plots(250, trmlframeflag = False)
+        make_spacetime_plots(125, trmlframeflag = False)
         print("Spacetime plots in simulation frame created successfully.")
-        """make_1D(36,125,skip)
+        make_1D(36,125,skip)
         make_1D(36,65,skip)
         make_1D(66,95,skip)
         make_1D(96,125,skip)
         make_PDF(36,125,skip)
         make_PDF(36,65,skip)
         make_PDF(66,95,skip)
-        make_PDF(96,125,skip)"""
+        make_PDF(96,125,skip)
     if MPI_DEF:
         for N in range(N1_local, N2_local):
             make_2D_paper_plots(N)
@@ -1161,9 +1161,9 @@ if __name__ == "__main__":
             plot_sliced_PDFs('y',n)
             plot_sliced_PDFs('z',n)
     if not MPI_DEF:        
-        """find_temporal_z0(36,125,skip)
+        find_temporal_z0(36,125,skip)
         find_temporal_z0(36,65,skip)
         find_temporal_z0(66,95,skip)
-        find_temporal_z0(96,125,skip)"""
+        find_temporal_z0(96,125,skip)
     print("1D arrays created successfully.")
 
