@@ -58,7 +58,7 @@ global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/constfiducial100less256_1024_1_3cold/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/invertedfiducial400less256_1024_1_3cold/bin/"
 #dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
@@ -127,6 +127,7 @@ def find_temporal_z0(start, end, jump):
     sum_z0_sqr /= (end - start + 1)
     z0_sig = np.sqrt(sum_z0_sqr - avg_z0**2)
     print(f'AVERAGE Z_0 FROM SNAPSHOT {start} to {end} is {avg_z0} +/- {z0_sig}')
+    print(f"PLEASE NOTE THE Z0 for 36 to 125!!!")
 
 def make_1D(start, end, jump):
     F=1
@@ -1161,9 +1162,9 @@ if __name__ == "__main__":
             plot_sliced_PDFs('y',n)
             plot_sliced_PDFs('z',n)
     if not MPI_DEF:        
-        find_temporal_z0(36,125,skip)
         find_temporal_z0(36,65,skip)
         find_temporal_z0(66,95,skip)
         find_temporal_z0(96,125,skip)
+        find_temporal_z0(36,125,skip)
     print("1D arrays created successfully.")
 

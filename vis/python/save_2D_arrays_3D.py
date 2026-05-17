@@ -71,7 +71,7 @@ def SetGlobals(path_to_files, F):
             for value in header:
                 f.write(f"{value}\n")
 
-def ISMCoolFn(temp):
+def ISMCoolFn_stock(temp):
     # original data from Shure et al. paper, covers 4.12 < logt < 8.16
     lhd = [
         -22.5977, -21.9689, -21.5972, -21.4615, -21.4789, -21.5497, -21.6211, -21.6595,
@@ -141,7 +141,7 @@ def ISMCoolFn_normlog(temp):
     norm = 5.4591716620684276e-21
     return norm * lambda_T
 
-def ISMCoolFn_const(temp):
+def ISMCoolFn(temp):
     # return a constant cooling rate 
     if (temp < 1.05e4) or (temp > 0.95e6):
         return 0.0
