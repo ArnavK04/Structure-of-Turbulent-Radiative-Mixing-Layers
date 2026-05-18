@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less256_1024_1_3cold/"
+dir = r"../../../Downloads/Trillium_data/snapsfiducialno_cooling/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -290,7 +290,7 @@ def plot_profiles():
     ax[0,0].fill_between(Y, (rho_av - rho_sig)/rho_h, (rho_av + rho_sig)/rho_h, color='gray', alpha=0.4)
     ax[0,0].set_xlim(Y[0], Y[-1])
     ax[0,0].tick_params(left=True, bottom=False, labelleft=True, labelbottom=False, labelsize=10)
-    ax[0,0].set_ylim(-5, 130)
+    #ax[0,0].set_ylim(-5, 130)
     ax[0,0].text(0.01, 0.97, r"$\langle \rho \rangle_t/\rho_h$", fontsize=16, ha='left', va='top', transform=ax[0,0].transAxes)
     #ax[0,0].legend(loc='lower left', fontsize=13, frameon=False, handlelength=1)
     ax[0,0].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
@@ -307,7 +307,7 @@ def plot_profiles():
     ax[0,1].fill_between(Y, (rho_vx2_av - rho_vx2_sig)/(rho_h*delU), (rho_vx2_av + rho_vx2_sig)/(rho_h*delU), color='gray', alpha=0.5)
     #ax[0,1].legend(loc='lower left', fontsize=13, frameon=False, handlelength=1)
     ax[0,1].set_xlim(Y[0], Y[-1])
-    ax[0,1].set_ylim(1.2*np.min(rho_avXv2_av/(rho_h*delU)), 1.2*np.max(delrho_delv2_av/(rho_h*delU)))
+    #ax[0,1].set_ylim(1.2*np.min(rho_avXv2_av/(rho_h*delU)), 1.2*np.max(delrho_delv2_av/(rho_h*delU)))
     ax[0,1].tick_params(left=True, bottom=False, labelleft=True, labelbottom=False, labelsize=10)
     ax[0,1].text(0.01, 0.97, r"$Mass\ density\ flux$", fontsize=16, ha='left', va='top', transform=ax[0,1].transAxes)
     ax[0,1].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
@@ -333,7 +333,7 @@ def plot_profiles():
     ax[1,1].fill_between(Y, (rhov2v1_av - rhov2v1_sig)/(rho_h*delU*delU), (rhov2v1_av + rhov2v1_sig)/(rho_h*delU*delU), color='gray', alpha=0.5)
     ax[1,1].legend(loc='lower left', fontsize=13, frameon=False, handlelength=1)
     ax[1,1].set_xlim(Y[0], Y[-1])
-    ax[1,1].set_ylim(-1.05, 0.55)
+    #ax[1,1].set_ylim(-1.05, 0.55)
     ax[1,1].text(0.01, 0.97, r"$X-momentum\ density\ flux$", fontsize=16, ha='left', va='top', transform=ax[1,1].transAxes)
     ax[1,1].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
     ax[1,1].tick_params(left=True, bottom=False, labelleft=True, labelbottom=False, labelsize=10)
@@ -363,7 +363,7 @@ def plot_profiles():
     ax[2,1].set_xlim(Y[0], Y[-1])
     ax[2,1].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
     ax[2,1].tick_params(left=True, bottom=False, labelleft=True, labelbottom=False, labelsize=10)
-    ax[2,1].set_ylim(-0.1, 1.3)
+    #ax[2,1].set_ylim(-0.1, 1.3)
     ax[2,1].text(0.01, 0.97, r"$Z-momentum\ density\ flux$", fontsize=16, ha='left', va='top', transform=ax[2,1].transAxes)
     for spine in ax[2,1].spines.values():
         spine.set_visible(True)
@@ -383,7 +383,7 @@ def plot_profiles():
     ax[3,1].set_xlim(Y[0], Y[-1])
     ax[3,1].tick_params(left=True, bottom=True, labelleft=True, labelbottom=True, labelsize=10)
     ax[3,1].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
-    ax[3,1].set_ylim(1.2*np.min(Be_av_rhov2_av/(P_0*delU)), 1.2*np.max(edot_cool_cum_dx2_av/(P_0*delU)))
+    #ax[3,1].set_ylim(1.2*np.min(Be_av_rhov2_av/(P_0*delU)), 1.2*np.max(edot_cool_cum_dx2_av/(P_0*delU)))
     ax[3,1].text(0.01, 0.97, r"$Energy\ density\ flux$", fontsize=16, ha='left', va='top', transform=ax[3,1].transAxes)
     for spine in ax[3,1].spines.values():
         spine.set_visible(True)
@@ -456,7 +456,7 @@ def plot_profiles():
     ax[2,0].grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
     ax[2,0].legend(loc='best', fontsize=13, frameon=False, handlelength=1)#, bbox_to_anchor=(0.65, 0.6))
     ax[2,0].set_xlim(Y[0], Y[-1])
-    ax[2,0].set_ylim(1.2*np.min(vx2_vol71to250), 0.05)
+    #ax[2,0].set_ylim(1.2*np.min(vx2_vol71to250), 0.05)
     for spine in ax[2,0].spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1)  # thickness of border
@@ -477,7 +477,7 @@ def plot_profiles():
     ax[3,0].set_xlim(Y[0], Y[-1])
     ax[3,0].plot(Y, Be_vol71to250, color='cyan', linewidth=0.75, label=r"$\langle \frac{\mathcal{B}\mu m_p}{2.5k_B T_h}\rangle_t $" + "\n" + r"$volume-weighted$")
     ax[3,0].legend(loc='center left', fontsize=11, frameon=False, handlelength=1)
-    ax[3,0].set_ylim(-0.1, 1.1)
+    #ax[3,0].set_ylim(-0.1, 1.1)
     for spine in ax[3,0].spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1)  # thickness of border
@@ -746,6 +746,7 @@ if __name__ == "__main__":
     cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
+    time_0 = 1.0
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
