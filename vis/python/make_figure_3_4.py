@@ -15,7 +15,7 @@ n3 = n2 + (n4 - n1 +1)//3
 #dir = r"../../../Downloads/Astro_zenith_data/new/snapsfidcool2D/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial64cool/"
 #dir = r"../../../Downloads/Aryabhatta_data/snapshalfres4xbox/"
-dir = r"../../../Downloads/Trillium_data/snapsfiducialno_cooling/"
+dir = r"../../../Downloads/Trillium_data/snapsnormlogfiducial256_1024/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
 filename = dir + f"KH_PDFs_time_averaged{n1}to{n4}with{jump}.npz"
@@ -37,7 +37,7 @@ CHI = 100.0
 GAMMA = 5.0/3.0
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.3333333
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -57,7 +57,7 @@ max_level = 0
 DY = 40./NY
 T_inflection = (1.1e4 + 0.9e6)/2
 NY_init = int(max(NY*(cold_frac - 0.35), 0))
-NY_fin = int(min(NY*(cold_frac + 0.35), NY))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY-1))
 
 tanh_modelflag = False
 
@@ -138,7 +138,6 @@ if __name__ == "__main__":
     cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
-    time_0 = 1.0
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
 
     z = np.linspace(-20, 20, NY)

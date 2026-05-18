@@ -37,7 +37,7 @@ GAMMA = 5.0/3.0
 # De- dimensionalising facotrs
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.3333333
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -57,14 +57,14 @@ max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
 NY_init = int(max(NY*(cold_frac - 0.35), 0))
-NY_fin = int(min(NY*(cold_frac + 0.35), NY))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY-1))
 
 global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsfiducialno_cooling/"
+dir = r"../../../Downloads/Trillium_data/snapsnormlogfiducial256_1024/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -746,7 +746,6 @@ if __name__ == "__main__":
     cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
-    time_0 = 1.0
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 

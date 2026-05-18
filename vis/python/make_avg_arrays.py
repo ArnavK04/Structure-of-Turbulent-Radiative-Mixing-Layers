@@ -31,7 +31,7 @@ GAMMA = 5.0/3.0
 # De- dimensionalising facotrs
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.3333333
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -52,13 +52,13 @@ DY = 40./NY
 T_inflection = (T_h + T_c)/2
 # cell centre for ith cell is at i*DY + DY/2 + YMIN
 NY_init = int(max(NY*(cold_frac - 0.35), 0))
-NY_fin = int(min(NY*(cold_frac + 0.35), NY))
+NY_fin = int(min(NY*(cold_frac + 0.35), NY-1))
 
 global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/invertedfiducial400less256_1024_1_3cold/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/normlogfiducial256_1024/bin/"
 #dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
