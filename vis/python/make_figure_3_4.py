@@ -15,7 +15,7 @@ n3 = n2 + (n4 - n1 +1)//3
 #dir = r"../../../Downloads/Astro_zenith_data/new/snapsfidcool2D/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial64cool/"
 #dir = r"../../../Downloads/Aryabhatta_data/snapshalfres4xbox/"
-dir = r"../../../Downloads/Trillium_data/snapsnormlogfiducial256_1024/"
+dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less256_1024_1_3cold/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
 filename = dir + f"KH_PDFs_time_averaged{n1}to{n4}with{jump}.npz"
@@ -37,7 +37,7 @@ CHI = 100.0
 GAMMA = 5.0/3.0
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.6666667
+cold_frac = 0.3333333
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -134,6 +134,8 @@ if __name__ == "__main__":
     global time_0
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
+    T_0 = 1e5
+    time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
     cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
