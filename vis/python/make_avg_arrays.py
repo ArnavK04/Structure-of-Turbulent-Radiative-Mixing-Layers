@@ -1100,7 +1100,7 @@ if __name__ == "__main__":
     global time_0
 
     T_0 = 1e5
-    time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
+    time_mid = 3. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
     print(f"Cooling time at T_0 = {T_0} K is {time_mid} code units")
 
     temp_arr = np.logspace(4, 6, 1000)

@@ -135,7 +135,7 @@ if __name__ == "__main__":
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
     T_0 = 1e5
-    time_mid = 5. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
+    time_mid = 3. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
     cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
