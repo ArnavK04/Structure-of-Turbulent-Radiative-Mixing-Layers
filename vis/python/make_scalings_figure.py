@@ -67,14 +67,14 @@ custom_lines = [
 marker_shapes = ['o', 's', 'D', '^', 'v', '<', '>', 'p']
 
 custom_markers = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='s', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='D', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='^', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='v', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='<', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='>', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='p', color='w', markerfacecolor='black', markersize=10)
+    Line2D([0], [0], marker='o', color='w', markerfacecolor=colours[0], markersize=10),
+    Line2D([0], [0], marker='s', color='w', markerfacecolor=colours[1], markersize=10),
+    Line2D([0], [0], marker='D', color='w', markerfacecolor=colours[2], markersize=10),
+    Line2D([0], [0], marker='^', color='w', markerfacecolor=colours[3], markersize=10),
+    Line2D([0], [0], marker='v', color='w', markerfacecolor=colours[4], markersize=10),
+    Line2D([0], [0], marker='<', color='w', markerfacecolor=colours[5], markersize=10),
+    Line2D([0], [0], marker='>', color='w', markerfacecolor=colours[6], markersize=10),
+    Line2D([0], [0], marker='p', color='w', markerfacecolor=colours[7], markersize=10)
 ]
 # list the possible linestyles for errorbars
 linestyles = ['-', ':', '-.', '--']
@@ -87,11 +87,6 @@ custom_linestyles = [
 ]
 
 marker_faces = ['black', 'none']
-
-custom_marker_faces = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='black', markersize=10),
-    Line2D([0], [0], marker='o', color='w', markerfacecolor='none', markersize=10),
-]
 
 # defining a global array that holds the run name, P_0, rho_h,rho_c, L_perp, v_rel, T_0, and observed Sigma_cool and its 1-sigma error and color
 runs_info = [
@@ -116,10 +111,12 @@ runs_info = [
     [r"$res\approx 1/2$x (fid) $L_{perp}-2x$", 14.02645, 0.001, 0.1, 20.0, 31., 1.0e5, 1.48, 0.27, colours[0], 2, marker_shapes[2], linestyles[0], marker_faces[0]],
     [r"$res\approx 1/2$x (fid) $L_{perp}-4x$", 14.02645, 0.001, 0.1, 40.0, 31., 1.0e5, 1.46, 0.23, colours[0], 2, marker_shapes[3], linestyles[0], marker_faces[0]],
     [r"$res\approx 1/2$x (fid) $L_{perp}-8x$", 14.02645, 0.001, 0.1, 80.0, 31., 1.0e5, 1.41, 0.18, colours[0], 2, marker_shapes[4], linestyles[0], marker_faces[0]],
-    [r"fid\ res-2x", 14.02645, 0.001, 0.1, 10.0, 31., 1.0e5, 1.39, 0.17, colours[0], 0, marker_shapes[0], linestyles[0], marker_faces[0]],
-    [r"$5\rho_h$ res-2x", 14.02645*5., 0.005, 0.5, 10.0, 31., 1.0e5, 1.52, 0.15, colours[1], 0, marker_shapes[0], linestyles[0], marker_faces[0]],
-    [r"3\rho_h-L_{\perp}-2x", 14.02645*3., 0.003, 0.3, 20.0, 31., 1.0e5, 1.45, 0.16, colours[3], 1, marker_shapes[2], linestyles[0], marker_faces[0]],
-    [r"4\rho_h-L_{\perp}-2x", 14.02645*4., 0.004, 0.4, 20.0, 31., 1.0e5, 1.45, 0.12, colours[4], 1, marker_shapes[2], linestyles[0], marker_faces[0]],
+    [r"$fid\ res-2x$", 14.02645, 0.001, 0.1, 10.0, 31., 1.0e5, 1.39, 0.17, colours[0], 0, marker_shapes[0], linestyles[0], marker_faces[0]],
+    [r"$5\rho_h$ res-2x$", 14.02645*5., 0.005, 0.5, 10.0, 31., 1.0e5, 1.52, 0.15, colours[1], 0, marker_shapes[0], linestyles[0], marker_faces[0]],
+    [r"$3\rho_h-L_{\perp}-2x$", 14.02645*3., 0.003, 0.3, 20.0, 31., 1.0e5, 1.45, 0.16, colours[3], 1, marker_shapes[2], linestyles[0], marker_faces[0]],
+    [r"$4\rho_h-L_{\perp}-2x$", 14.02645*4., 0.004, 0.4, 20.0, 31., 1.0e5, 1.45, 0.12, colours[4], 1, marker_shapes[2], linestyles[0], marker_faces[0]],
+    [r"$4\rho_h-L_{\perp}-2x,\ res-2x$", 14.02645*4., 0.004, 0.4, 20.0, 31., 1.0e5, 1.52, 0.18, colours[4], 0, marker_shapes[2], linestyles[0], marker_faces[0]],
+    [r"$4\rho_h-L_{\perp}-2x,\ res-1/2$", 14.02645*4., 0.004, 0.4, 20.0, 31., 1.0e5, 1.52, 0.10, colours[4], 2, marker_shapes[2], linestyles[0], marker_faces[0]],
 ]
 
 def give_chi(rhoc,rhoh):
@@ -132,13 +129,8 @@ def give_t0(P0, rho0):
     time_0 = 3.*P0/(2.*rho0*rho0*ISMCoolFn(T_0)/COOLING_UNIT)
     return time_0
 
-def give_pred_cooling_rate1_2(chi,xi):
-    return 0.025*2.5*math.pow(chi,3./8.)*math.pow(xi, 0.5)
-
-
 def give_pred_cooling_rate2(chi, xi):
     return 0.043*2.5*math.pow(chi,3./8.)*math.pow(xi, 0.25)
-
 
 def main():
 
@@ -159,13 +151,12 @@ def main():
         chi = give_chi(rhoc, rhoh)
         t0 = give_t0(Pres, rho0)
         xi = give_xi(Lperp, vrel, t0)
-        Sigma_cool_pred = give_pred_cooling_rate1_2(chi, xi)
         Sigma_cool_pred2 = give_pred_cooling_rate2(chi, xi)
-        print(f"Check: Sigma_cool_pred: {Sigma_cool_pred}, Sigma_cool_pred2: {Sigma_cool_pred2}")
+        print(f"Sigma_cool_pred2: {Sigma_cool_pred2}")
 
         if not (run[9] == colours[0] and run[10] > 2):
             err = ax.errorbar(xi, Sigma_cool_obs, yerr=Sigma_cool_err, fmt='o',markersize=10, capsize = 5, capthick=2, label=run_name, alpha=1./(math.pow(1.25, run[10])), marker=run[11], markeredgecolor='black' ,markerfacecolor=run[9], ecolor=run[9])
-            print(f"Run: {run_name}, xi: {xi}, xi^-0.25: {math.pow(xi, -0.25)}, chi: {chi}, chi^3/8:{math.pow(chi,3./8.)} Sigma_cool_obs: {Sigma_cool_obs}, Sigma_cool_pred: {Sigma_cool_pred}")
+            print(f"Run: {run_name}, xi: {xi}, xi^-0.25: {math.pow(xi, -0.25)}, chi: {chi}, chi^3/8:{math.pow(chi,3./8.)} Sigma_cool_obs: {Sigma_cool_obs}")
             for bar in err[2]:
                 bar.set_linestyle(run[12])
                 bar.set_linewidth(2)
@@ -192,7 +183,7 @@ def main():
 
 
     fig2, ax = plt.subplots(figsize=(8, 6))
-
+    global XI
     for run in runs_info:
         run_name = run[0]
         Pres = run[1]
@@ -208,15 +199,13 @@ def main():
         chi = give_chi(rhoc, rhoh)
         t0 = give_t0(Pres, rho0)
         xi = give_xi(Lperp, vrel, t0)
-        Sigma_cool_pred = give_pred_cooling_rate1_2(chi, xi)
         Sigma_cool_pred2 = give_pred_cooling_rate2(chi, xi)
-        print(f"Check: Sigma_cool_pred: {Sigma_cool_pred}, Sigma_cool_pred2: {Sigma_cool_pred2}")
+        print(f"Sigma_cool_pred2: {Sigma_cool_pred2}")
 
-        if (run[9] == colours[0] and xi > 16 and xi < 17):
-            global XI
+        if (run[9] == colours[0] and 8.0< run[4] <12.0):
             XI = xi
             ax.errorbar(run[10]-1, Sigma_cool_obs, yerr=Sigma_cool_err, fmt='o',markersize=10, capsize = 5, capthick=2, label=run_name, color = run[9])
-        
+
     ax.plot(np.linspace(-2, 8, 100), np.full(100,give_pred_cooling_rate2(100, XI)), label='Predicted Scaling', color='black', linestyle='--')
     ax.set_ylim(0,3.0)
     ax.set_xlim(-2, 7)

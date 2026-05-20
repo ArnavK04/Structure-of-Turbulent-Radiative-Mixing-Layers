@@ -658,6 +658,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
     full_pres = np.zeros((end - start + 1, y_size))
     full_scalar = np.zeros((end - start + 1, y_size))
     full_pseudo_entropy = np.zeros((end - start + 1, y_size))
+    full_scalar_vx1turb = np.zeros((end - start + 1, y_size))
+    full_scalar_vx2turb = np.zeros((end - start + 1, y_size))
+    full_scalar_vx3turb = np.zeros((end - start + 1, y_size))
+    full_scalar_vturb = np.zeros((end - start + 1, y_size))
 
     F=1
 
@@ -674,6 +678,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
         v_TRML_integrated = 0.0
         frame = "trml_frame"
+        make_turb_plot_flag = True
 
         with np.load(dir + 'KH_1D_arrays_snapshot_' + str(start).zfill(5) + f'C{F}.npz', 'r') as f:
             Y_range_final = slice_to_half(f['Y_lims'])
@@ -694,6 +699,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
                 p_vol = f['prs_vol']
                 vx3_vol = f['vx3_vol']
                 ps_vol = f['ps_vol']
+                vx1_turb_rms_vol = f['vx1_turb_rms_vol']
+                vx2_turb_rms_vol = f['vx2_turb_rms_vol']
+                vx3_turb_rms_vol = f['vx3_turb_rms_vol']
+                v_turb_rms_vol = f['v_turb_rms_vol']
                 pseudo_entropy_vol = np.log10((p_vol/P_0)/((rho_vol/rho_h)**GAMMA))
 
             Y_lims -= v_TRML_integrated         # shifting Y_lims to account for the movement of the interface due to the TRML velocity.
@@ -713,6 +722,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
             vx3_vol = interp(vx3_vol)
             ps_vol = interp(ps_vol)
             pseudo_entropy_vol = interp(pseudo_entropy_vol)
+            vx1_turb_rms_vol = interp(vx1_turb_rms_vol)
+            vx2_turb_rms_vol = interp(vx2_turb_rms_vol)
+            vx3_turb_rms_vol = interp(vx3_turb_rms_vol)
+            v_turb_rms_vol = interp(v_turb_rms_vol)
 
             full_velx[n, :] = vx1_vol
             full_vely[n, :] = vx2_vol
@@ -722,11 +735,16 @@ def make_spacetime_plots(end, trmlframeflag = False):
             full_pres[n, :] = p_vol
             full_scalar[n, :] = ps_vol
             full_pseudo_entropy[n, :] = pseudo_entropy_vol
+            full_scalar_vx1turb[n, :] = vx1_turb_rms_vol
+            full_scalar_vx2turb[n, :] = vx2_turb_rms_vol
+            full_scalar_vx3turb[n, :] = vx3_turb_rms_vol
+            full_scalar_vturb[n, :] = v_turb_rms_vol
 
         Y_range = Y_range_final
 
     else : 
         frame = "sim_frame"
+        make_turb_plot_flag = False
 
         for n in range(start,end+1, jump):
 
@@ -761,9 +779,9 @@ def make_spacetime_plots(end, trmlframeflag = False):
         Y_range = Y_lims
 
     # Configuration for data and labels
-    datasets = [full_velx/delU, full_vely/delU, full_velz/delU, full_temp/T_h, full_den/rho_h, full_pres/P_0, full_scalar, full_pseudo_entropy]
-    labels = [r"$u_x/\Delta u$", r"$u_z/\Delta u$",r"$u_y/\Delta u$",r"$T/T_h$", r"$\rho/\rho_h$",r"$p/p_0$", r"$s$" , r"$\log_{10}(\frac{p/p_0}{(\rho/\rho_h)^{\gamma}})$"]
-    cmaps = ['inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno']
+    datasets = [full_velx/delU, full_vely/delU, full_velz/delU, full_temp/T_h, full_den/rho_h, full_pres/P_0, full_scalar, full_pseudo_entropy, full_scalar_vx1turb/delU, full_scalar_vx2turb/delU, full_scalar_vx3turb/delU, full_scalar_vturb/delU]
+    labels = [r"$u_x/\Delta u$", r"$u_z/\Delta u$",r"$u_y/\Delta u$",r"$T/T_h$", r"$\rho/\rho_h$",r"$p/p_0$", r"$s$" , r"$\log_{10}(\frac{p/p_0}{(\rho/\rho_h)^{\gamma}})$", r"$v_{turb,x}/\Delta u$", r"$v_{turb,z}/\Delta u$", r"$v_{turb,y}/\Delta u$", r"$v_{turb}/\Delta u$"]
+    cmaps = ['inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno']
     Y_range = Y_range/(delU * time_0)
     Y_range -= x0_norm
     timei /= time_0
@@ -871,6 +889,42 @@ def make_spacetime_plots(end, trmlframeflag = False):
     save_path = f"{dir}KH_spacetime_{frame}_time_averaged{start}to{end}with{jump}.png"
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
+
+    fig, ax = plt.subplots(1, 4, figsize=(14, 10), constrained_layout=True)
+    ax = ax.flatten()
+
+
+    for i in range(8, 12):
+        im = ax[i].imshow(datasets[i].T, aspect='auto', origin='lower', 
+                    extent=(timei, timef, Y_range[0], Y_range[-1]), 
+                    cmap=cmaps[i])
+        
+        # Set limits and small fonts
+        ax[i].set_xlim(timei, timef)
+        ax[i].tick_params(axis='both', labelsize=12)
+        ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=14)
+        
+        # Only label the Y-axis on the first plot to save space
+        if i == 8:
+            ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=14)
+        else:
+            ax[i].tick_params(labelleft=False)
+
+        # Make the individual colorbar vertical on the right
+        cbar = fig.colorbar(im, ax=ax[i], orientation='horizontal', location='top', pad=0.02)
+        cbar.ax.tick_params(labelsize=11)
+        ax[i].text(0.05, 0.95,labels[i],transform=ax[i].transAxes,ha='left', va='top',fontsize=16,color='black',bbox=dict(facecolor='white',edgecolor='black',boxstyle='round,pad=0.2'))
+
+        # Tight borders
+        for spine in ax[i].spines.values():
+            spine.set_visible(True)
+            spine.set_linewidth(0.8)
+
+    # Save the plot
+    save_path = f"{dir}KH_spacetime_vturb_trml_frame_time_averaged{start}to{end}with{jump}.png"
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
 
 def make_2D_paper_plots(i):
 
@@ -1106,7 +1160,7 @@ if __name__ == "__main__":
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
-    cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
+    cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
