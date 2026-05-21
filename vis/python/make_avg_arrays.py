@@ -167,6 +167,14 @@ def make_1D(start, end, jump):
     P_E__T_log10T_sig = np.zeros(100)
     Sigma_dot_cool_hist = np.zeros(end - start + 1)
     energy_density_integrated = np.zeros(end - start + 1)
+    v_turb_mw_whole_box = np.zeros(end - start + 1)
+    v_turb_mw_whole_box1 = np.zeros(end - start + 1)
+    v_turb_mw_whole_box2 = np.zeros(end - start + 1)
+    v_turb_mw_whole_box3 = np.zeros(end - start + 1)
+    v_turb_vol_whole_box = np.zeros(end - start + 1)
+    v_turb_vol_whole_box1 = np.zeros(end - start + 1)
+    v_turb_vol_whole_box2 = np.zeros(end - start + 1)
+    v_turb_vol_whole_box3 = np.zeros(end - start + 1)
 
     if (start!=0):
         with np.load(dir + f"KH_1D_arrays_snapshot{n_i}_{n_f}_{str(start).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
@@ -929,7 +937,6 @@ def make_spacetime_plots(end, trmlframeflag = False):
         save_path = f"{dir}KH_spacetime_vturb_trml_frame_time_averaged{start}to{end}with{jump}.png"
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
-
 
 def make_2D_paper_plots(i):
 
