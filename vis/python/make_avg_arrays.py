@@ -58,8 +58,8 @@ global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/normlogfiducial256_1024/bin/"
-#dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
+#dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/normlogfiducial256_1024/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
@@ -1167,7 +1167,7 @@ if __name__ == "__main__":
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
     n_i = 0
-    n_f = 125
+    n_f = 250
     if MPI_DEF:
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
@@ -1178,8 +1178,8 @@ if __name__ == "__main__":
         N1_local = rank * nfiles_local + n_i
         N2_local = (rank + 1) * nfiles_local + n_i
     global n1, n2, n3, n4
-    n1 = 36
-    n4 = 125
+    n1 = 71
+    n4 = 250
     n2 = n1 + (n4 - n1 +1)//3
     n3 = n2 + (n4 - n1 +1)//3
     begin = n1
@@ -1188,21 +1188,21 @@ if __name__ == "__main__":
     global jump
     jump = skip
     if not MPI_DEF:
-        find_temporal_z0(0,125,skip)
-        make_1D(0,125,skip)
+        #find_temporal_z0(0,250,skip)
+        #make_1D(0,125,skip)
         print("1D arrays created successfully.")
-        make_spacetime_plots(125, trmlframeflag = True)
+        make_spacetime_plots(250, trmlframeflag = True)
         print("Spacetime plots in TRML frame created successfully.")
-        make_spacetime_plots(125, trmlframeflag = False)
+        make_spacetime_plots(250, trmlframeflag = False)
         print("Spacetime plots in simulation frame created successfully.")
-        make_1D(36,125,skip)
+        """make_1D(36,125,skip)
         make_1D(36,65,skip)
         make_1D(66,95,skip)
         make_1D(96,125,skip)
         make_PDF(36,125,skip)
         make_PDF(36,65,skip)
         make_PDF(66,95,skip)
-        make_PDF(96,125,skip)
+        make_PDF(96,125,skip)"""
     if MPI_DEF:
         for N in range(N1_local, N2_local):
             make_2D_paper_plots(N)
@@ -1216,9 +1216,9 @@ if __name__ == "__main__":
             plot_sliced_PDFs('y',n)
             plot_sliced_PDFs('z',n)
     if not MPI_DEF:        
-        find_temporal_z0(36,65,skip)
+        """find_temporal_z0(36,65,skip)
         find_temporal_z0(66,95,skip)
         find_temporal_z0(96,125,skip)
-        find_temporal_z0(36,125,skip)
+        find_temporal_z0(36,125,skip)"""
     print("1D arrays created successfully.")
 
