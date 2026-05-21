@@ -252,6 +252,20 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
 
     v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_vol = np.sqrt(np.mean(v_turb_rms**2, axis=(0,2)))
+
+    # mass weighted turbulent velocity
+    fluc_vx1 = vx1 - vx1_mw[np.newaxis, :, np.newaxis]
+    fluc_vx2 = vx2 - vx2_mw[np.newaxis, :, np.newaxis]
+    fluc_vx3 = vx3 - vx3_mw[np.newaxis, :, np.newaxis]
+    vx1_turb_mw = np.sqrt(np.sum(den * fluc_vx1**2, axis=(0,2)) / np.sum(den, axis=(0,2)))
+    vx2_turb_mw = np.sqrt(np.sum(den * fluc_vx2**2, axis=(0,2)) / np.sum(den, axis=(0,2)))
+    vx3_turb_mw = np.sqrt(np.sum(den * fluc_vx3**2, axis=(0,2)) / np.sum(den, axis=(0,2)))
+
+    v_turb_rms_mw = np.sqrt(vx1_turb_mw**2 + vx2_turb_mw**2 + vx3_turb_mw**2)
+    v_turb_rms_whole_box1 = math.sqrt(np.sum(den * (fluc_vx1**2), axis=(0,1,2)) / np.sum(den))
+    v_turb_rms_whole_box2 = math.sqrt(np.sum(den * (fluc_vx2**2), axis=(0,1,2)) / np.sum(den))
+    v_turb_rms_whole_box3 = math.sqrt(np.sum(den * (fluc_vx3**2), axis=(0,1,2)) / np.sum(den))
+    v_turb_rms_whole_box = math.sqrt(v_turb_rms_whole_box1**2 + v_turb_rms_whole_box2**2 + v_turb_rms_whole_box3**2)
     # Save 1D arrays to a compressed .npz file
 
     np.savez_compressed(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz',
@@ -305,6 +319,10 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
                         emis_sig=emis_sig, emis_mw=emis_mw, emis_sig_mw=emis_sig_mw,
                         vx2_turb_rms_vol=vx2_turb_rms_vol, vx3_turb_rms_vol=vx3_turb_rms_vol,
                         v_turb_rms_vol=v_turb_rms_vol,
+                        vx1_turb_mw=vx1_turb_mw, vx2_turb_mw=vx2_turb_mw, vx3_turb_mw=vx3_turb_mw,
+                        v_turb_rms_mw=v_turb_rms_mw,
+                        v_turb_rms_whole_box=v_turb_rms_whole_box, v_turb_rms_whole_box1=v_turb_rms_whole_box1, 
+                        v_turb_rms_whole_box2=v_turb_rms_whole_box2, v_turb_rms_whole_box3=v_turb_rms_whole_box3,
                         number=n, time=tim, factor=F) 
     
 def MakeSlicedPDFs(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, slices, axis='y'):
