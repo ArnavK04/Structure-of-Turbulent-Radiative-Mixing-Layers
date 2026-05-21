@@ -336,7 +336,7 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
                         v_turb_rms_whole_box=v_turb_mw_whole_box, v_turb_rms_whole_box1=v_turb_mw_whole_box1, 
                         v_turb_rms_whole_box2=v_turb_mw_whole_box2, v_turb_rms_whole_box3=v_turb_mw_whole_box3,
                         v_turb_mean_wholebox = v_turb_mean_wholebox, v_turb_mean_wholebox1=v_turb_mean_wholebox1,
-                        v_turb_mean_wholebox2=v_turb_mean_wholebox2,
+                        v_turb_mean_wholebox2=v_turb_mean_wholebox2, v_turb_mean_wholebox3=v_turb_mean_wholebox3,
                         number=n, time=tim, factor=F) 
     
 def MakeSlicedPDFs(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, slices, axis='y'):

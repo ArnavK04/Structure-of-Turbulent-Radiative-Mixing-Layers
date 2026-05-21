@@ -216,8 +216,25 @@ def make_1D(start, end, jump):
             p_vol = f['prs_vol']
             vx3_vol = f['vx3_vol']
             rho_mw = (rho_sig**2 + rho_vol**2)/ rho_vol
+            vturbvol_wb1 = f['v_turb_mean_wholebox1']
+            vturbvol_wb2 = f['v_turb_mean_wholebox2']
+            vturbvol_wb3 = f['v_turb_mean_wholebox3']
+            vturbvol_wb = f['v_turb_mean_wholebox']
+            vturbmw_wb1 = f['v_turb_rms_whole_box1']
+            vturbmw_wb2 = f['v_turb_rms_whole_box2']
+            vturbmw_wb3 = f['v_turb_rms_whole_box3']
+            vturbmw_wb = f['v_turb_rms_whole_box']
+            
 
         energy_density_integrated[count] = (np.cumsum(energy_dens_vol)*(Y_lims[1] - Y_lims[0]))[-1]
+        v_turb_mw_whole_box[count] = vturbmw_wb
+        v_turb_mw_whole_box1[count] = vturbmw_wb1
+        v_turb_mw_whole_box2[count] = vturbmw_wb2
+        v_turb_mw_whole_box3[count] = vturbmw_wb3
+        v_turb_vol_whole_box[count] = vturbvol_wb
+        v_turb_vol_whole_box1[count] = vturbvol_wb1
+        v_turb_vol_whole_box2[count] = vturbvol_wb2
+        v_turb_vol_whole_box3[count] = vturbvol_wb3
 
         count+=1
 
@@ -375,7 +392,10 @@ def make_1D(start, end, jump):
                 vx1_vol_sig = vx1_sig, vx2_vol_sig = vx2_sig,
                 Be_mw_av = Be_mw_av, Be_mw_sig = Be_mw_sig,
                 Be_vol_av = Be_vol_av, Be_sig = Be_sig,
-                p_vol_av = p_vol_av, p_sig = p2_vol_av,Sigma_dot_cool_hist = Sigma_dot_cool_hist, Y_range_final = Y_range_final, energy_density_integrated = energy_density_integrated)
+                p_vol_av = p_vol_av, p_sig = p2_vol_av,Sigma_dot_cool_hist = Sigma_dot_cool_hist, Y_range_final = Y_range_final, energy_density_integrated = energy_density_integrated,
+                v_turb_mw_whole_box = v_turb_mw_whole_box, v_turb_mw_whole_box1 = v_turb_mw_whole_box1, v_turb_mw_whole_box2 = v_turb_mw_whole_box2, v_turb_mw_whole_box3 = v_turb_mw_whole_box3,
+                v_turb_vol_whole_box = v_turb_vol_whole_box, v_turb_vol_whole_box1 = v_turb_vol_whole_box1, v_turb_vol_whole_box2 = v_turb_vol_whole_box2, v_turb_vol_whole_box3 = v_turb_vol_whole_box3
+                )
 
     del rho_av, rho_vx1_av, rho_vx2_av, energy_dens_av, emis_vol_av
     del rho_sig, rho_vx1_sig, rho_vx2_sig, energy_dens_sig, emis_vol_sig
@@ -670,6 +690,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
     full_scalar_vx2turb = np.zeros((end - start + 1, y_size))
     full_scalar_vx3turb = np.zeros((end - start + 1, y_size))
     full_scalar_vturb = np.zeros((end - start + 1, y_size))
+    full_vx1turbmw = np.zeros((end - start + 1, y_size))
+    full_vx2turbmw = np.zeros((end - start + 1, y_size))
+    full_vx3turbmw = np.zeros((end - start + 1, y_size))
+    full_vturbmw = np.zeros((end - start + 1, y_size))
 
     F=1
 
@@ -686,7 +710,8 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
         v_TRML_integrated = 0.0
         frame = "trml_frame"
-        make_turb_plot_flag = True
+        make_turb_plot_vol_flag = True
+        make_turb_plot_mw_flag = True
 
         with np.load(dir + 'KH_1D_arrays_snapshot_' + str(start).zfill(5) + f'C{F}.npz', 'r') as f:
             Y_range_final = slice_to_half(f['Y_lims'])
@@ -711,6 +736,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
                 vx2_turb_rms_vol = f['vx2_turb_rms_vol']
                 vx3_turb_rms_vol = f['vx3_turb_rms_vol']
                 v_turb_rms_vol = f['v_turb_rms_vol']
+                vx1_turb_rms_mw = f['vx1_turb_mw']
+                vx2_turb_rms_mw = f['vx2_turb_mw']
+                vx3_turb_rms_mw = f['vx3_turb_mw']
+                v_turb_rms_mw = f['v_turb_rms_mw']
                 pseudo_entropy_vol = np.log10((p_vol/P_0)/((rho_vol/rho_h)**GAMMA))
 
             Y_lims -= v_TRML_integrated         # shifting Y_lims to account for the movement of the interface due to the TRML velocity.
@@ -734,6 +763,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
             vx2_turb_rms_vol = interp(vx2_turb_rms_vol)
             vx3_turb_rms_vol = interp(vx3_turb_rms_vol)
             v_turb_rms_vol = interp(v_turb_rms_vol)
+            vx1_turb_rms_mw = interp(vx1_turb_rms_mw)
+            vx2_turb_rms_mw = interp(vx2_turb_rms_mw)
+            vx3_turb_rms_mw = interp(vx3_turb_rms_mw)
+            v_turb_rms_mw = interp(v_turb_rms_mw)
 
             full_velx[n, :] = vx1_vol
             full_vely[n, :] = vx2_vol
@@ -747,12 +780,17 @@ def make_spacetime_plots(end, trmlframeflag = False):
             full_scalar_vx2turb[n, :] = vx2_turb_rms_vol
             full_scalar_vx3turb[n, :] = vx3_turb_rms_vol
             full_scalar_vturb[n, :] = v_turb_rms_vol
+            full_vx1turbmw[n, :] = vx1_turb_rms_mw
+            full_vx2turbmw[n, :] = vx2_turb_rms_mw
+            full_vx3turbmw[n, :] = vx3_turb_rms_mw
+            full_vturbmw[n, :] = v_turb_rms_mw
 
         Y_range = Y_range_final
 
     else : 
         frame = "sim_frame"
-        make_turb_plot_flag = False
+        make_turb_plot_vol_flag = False
+        make_turb_plot_mw_flag = False
 
         for n in range(start,end+1, jump):
 
@@ -898,7 +936,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
 
-    if make_turb_plot_flag:
+    if make_turb_plot_vol_flag:
         datasets = [full_scalar_vx1turb/delU, full_scalar_vx2turb/delU, full_scalar_vx3turb/delU, full_scalar_vturb/delU]
         labels = [r"$v_{turb,x}/\Delta u$", r"$v_{turb,z}/\Delta u$", r"$v_{turb,y}/\Delta u$", r"$v_{turb}/\Delta u$"]
         cmaps = ['inferno', 'inferno', 'inferno', 'inferno']
@@ -938,6 +976,46 @@ def make_spacetime_plots(end, trmlframeflag = False):
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
 
+    if make_turb_plot_mw_flag:
+        datasets = [full_vx1turbmw/delU, full_vx2turbmw/delU, full_vx3turbmw/delU, full_vturbmw/delU]
+        labels = [r"$v_{turb,x,mw}/\Delta u$", r"$v_{turb,z,mw}/\Delta u$", r"$v_{turb,y,mw}/\Delta u$", r"$v_{turb,mw}/\Delta u$"]
+        cmaps = ['inferno', 'inferno', 'inferno', 'inferno']
+
+        fig, ax = plt.subplots(1, 4, figsize=(14, 10), constrained_layout=True)
+        ax = ax.flatten()
+
+
+        for i in range(4):
+            im = ax[i].imshow(datasets[i].T, aspect='auto', origin='lower', 
+                        extent=(timei, timef, Y_range[0], Y_range[-1]), 
+                        cmap=cmaps[i])
+            
+            # Set limits and small fonts
+            ax[i].set_xlim(timei, timef)
+            ax[i].tick_params(axis='both', labelsize=12)
+            ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=14)
+            
+            # Only label the Y-axis on the first plot to save space
+            if i == 0:
+                ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=14)
+            else:
+                ax[i].tick_params(labelleft=False)
+
+            # Make the individual colorbar vertical on the right
+            cbar = fig.colorbar(im, ax=ax[i], orientation='horizontal', location='top', pad=0.02)
+            cbar.ax.tick_params(labelsize=11)
+            ax[i].text(0.05, 0.95,labels[i],transform=ax[i].transAxes,ha='left', va='top',fontsize=16,color='black',bbox=dict(facecolor='white',edgecolor='black',boxstyle='round,pad=0.2'))
+
+            # Tight borders
+            for spine in ax[i].spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(0.8)
+
+        # Save the plot
+        save_path = f"{dir}KH_spacetime_vturb_mw_trml_frame_time_averaged{start}to{end}with{jump}.png"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+
 def make_2D_paper_plots(i):
 
     global dir, NX, NY, NZ, F, max_level, delU, time_0, rho_h, T_inflection, jump, cold_frac, NY_init, NY_fin
@@ -956,10 +1034,10 @@ def make_2D_paper_plots(i):
         den_vol = f['den_vol']
         prs_vol = f['prs_vol']
         emis_vol = f['emis_vol']
-        vx1_turb_rms_vol = f['vx1_turb_rms_vol']
-        vx2_turb_rms_vol = f['vx2_turb_rms_vol']
-        vx3_turb_rms_vol = f['vx3_turb_rms_vol']
-        v_turb_rms_vol = f['v_turb_rms_vol']
+        vx1_turb_rms_vol = f['vx1_turb_mw']
+        vx2_turb_rms_vol = f['vx2_turb_mw']
+        vx3_turb_rms_vol = f['vx3_turb_mw']
+        v_turb_rms_vol = f['v_turb_rms_mw']
     
     with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz", 'r') as f:
         rho_av71to250 = f['rho_av']
