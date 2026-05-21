@@ -779,9 +779,9 @@ def make_spacetime_plots(end, trmlframeflag = False):
         Y_range = Y_lims
 
     # Configuration for data and labels
-    datasets = [full_velx/delU, full_vely/delU, full_velz/delU, full_temp/T_h, full_den/rho_h, full_pres/P_0, full_scalar, full_pseudo_entropy, full_scalar_vx1turb/delU, full_scalar_vx2turb/delU, full_scalar_vx3turb/delU, full_scalar_vturb/delU]
-    labels = [r"$u_x/\Delta u$", r"$u_z/\Delta u$",r"$u_y/\Delta u$",r"$T/T_h$", r"$\rho/\rho_h$",r"$p/p_0$", r"$s$" , r"$\log_{10}(\frac{p/p_0}{(\rho/\rho_h)^{\gamma}})$", r"$v_{turb,x}/\Delta u$", r"$v_{turb,z}/\Delta u$", r"$v_{turb,y}/\Delta u$", r"$v_{turb}/\Delta u$"]
-    cmaps = ['inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno']
+    datasets = [full_velx/delU, full_vely/delU, full_velz/delU, full_temp/T_h, full_den/rho_h, full_pres/P_0, full_scalar, full_pseudo_entropy]
+    labels = [r"$u_x/\Delta u$", r"$u_z/\Delta u$",r"$u_y/\Delta u$",r"$T/T_h$", r"$\rho/\rho_h$",r"$p/p_0$", r"$s$" , r"$\log_{10}(\frac{p/p_0}{(\rho/\rho_h)^{\gamma}})$"]
+    cmaps = ['inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno', 'inferno']
     Y_range = Y_range/(delU * time_0)
     Y_range -= x0_norm
     timei /= time_0
@@ -890,11 +890,15 @@ def make_spacetime_plots(end, trmlframeflag = False):
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
 
+    datasets = [full_scalar_vx1turb/delU, full_scalar_vx2turb/delU, full_scalar_vx3turb/delU, full_scalar_vturb/delU]
+    labels = [r"$v_{turb,x}/\Delta u$", r"$v_{turb,z}/\Delta u$", r"$v_{turb,y}/\Delta u$", r"$v_{turb}/\Delta u$"]
+    cmaps = ['inferno', 'inferno', 'inferno', 'inferno']
+
     fig, ax = plt.subplots(1, 4, figsize=(14, 10), constrained_layout=True)
     ax = ax.flatten()
 
 
-    for i in range(8, 12):
+    for i in range(4):
         im = ax[i].imshow(datasets[i].T, aspect='auto', origin='lower', 
                     extent=(timei, timef, Y_range[0], Y_range[-1]), 
                     cmap=cmaps[i])
@@ -905,7 +909,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
         ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=14)
         
         # Only label the Y-axis on the first plot to save space
-        if i == 8:
+        if i == 0:
             ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=14)
         else:
             ax[i].tick_params(labelleft=False)
@@ -1188,7 +1192,7 @@ if __name__ == "__main__":
     global jump
     jump = skip
     if not MPI_DEF:
-        #find_temporal_z0(0,250,skip)
+        find_temporal_z0(0,250,skip)
         #make_1D(0,125,skip)
         print("1D arrays created successfully.")
         make_spacetime_plots(250, trmlframeflag = True)
