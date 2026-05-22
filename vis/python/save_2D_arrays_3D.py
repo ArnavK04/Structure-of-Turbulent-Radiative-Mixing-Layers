@@ -222,19 +222,17 @@ def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
-    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
-    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
-    den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
+    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
+    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
+    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
+    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, X, 'x')
+    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, X, 'x')
+    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, X, 'x')
 
-    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, X, 'x')
-    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, X, 'x')
-    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, X, 'x')
-
-    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
+    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, X, 'x')
     
     # Calculate temperature only for the slice
@@ -266,19 +264,17 @@ def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
-    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
-    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
-    den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
+    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
+    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
+    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
+    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, Z, 'z')
+    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, Z, 'z')
+    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, Z, 'z')
 
-    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Z, 'z')
-    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Z, 'z')
-    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, Z, 'z')
-
-    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
+    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Z, 'z')
 
     # Calculate temperature only for the slice
@@ -309,19 +305,17 @@ def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
-    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
-    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
-    den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
+    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
+    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
+    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
+    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
+    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, Y, 'y')
+    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, Y, 'y')
+    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, Y, 'y')
 
-    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Y, 'y')
-    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Y, 'y')
-    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, Y, 'y')
-
-    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
+    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2)  
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Y, 'y')
 
     # Calculate temperature only for the slice
