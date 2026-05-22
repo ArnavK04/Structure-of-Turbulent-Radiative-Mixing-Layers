@@ -67,14 +67,14 @@ custom_lines = [
 marker_shapes = ['o', 's', 'D', '^', 'v', '<', '>', 'p']
 
 custom_markers = [
-    Line2D([0], [0], marker='o', color='w', markerfacecolor=colours[0], markersize=10),
-    Line2D([0], [0], marker='s', color='w', markerfacecolor=colours[1], markersize=10),
-    Line2D([0], [0], marker='D', color='w', markerfacecolor=colours[2], markersize=10),
-    Line2D([0], [0], marker='^', color='w', markerfacecolor=colours[3], markersize=10),
-    Line2D([0], [0], marker='v', color='w', markerfacecolor=colours[4], markersize=10),
-    Line2D([0], [0], marker='<', color='w', markerfacecolor=colours[5], markersize=10),
-    Line2D([0], [0], marker='>', color='w', markerfacecolor=colours[6], markersize=10),
-    Line2D([0], [0], marker='p', color='w', markerfacecolor=colours[7], markersize=10)
+    Line2D([0], [0], marker='o', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='s', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='D', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='^', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='v', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='<', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='>', color='w', markerfacecolor='black', markersize=10),
+    Line2D([0], [0], marker='p', color='w', markerfacecolor='black', markersize=10)
 ]
 # list the possible linestyles for errorbars
 linestyles = ['-', ':', '-.', '--']
@@ -155,6 +155,10 @@ def main():
         print(f"Sigma_cool_pred2: {Sigma_cool_pred2}")
 
         if not (run[9] == colours[0] and run[10] > 2):
+            if run[9] == colours[4] and run[10] == 0:
+                xi -= 0.5
+            elif run[9] == colours[4] and run[10] == 2:
+                xi += 0.5
             err = ax.errorbar(xi, Sigma_cool_obs, yerr=Sigma_cool_err, fmt='o',markersize=10, capsize = 5, capthick=2, label=run_name, alpha=1./(math.pow(1.25, run[10])), marker=run[11], markeredgecolor='black' ,markerfacecolor=run[9], ecolor=run[9])
             print(f"Run: {run_name}, xi: {xi}, xi^-0.25: {math.pow(xi, -0.25)}, chi: {chi}, chi^3/8:{math.pow(chi,3./8.)} Sigma_cool_obs: {Sigma_cool_obs}")
             for bar in err[2]:

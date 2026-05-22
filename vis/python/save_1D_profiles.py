@@ -278,6 +278,21 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
     v_turb_mw_whole_box2 = math.sqrt(np.sum(den * ((vx2 - vx2_mw_mean_wholebox)**2)) / np.sum(den))
     v_turb_mw_whole_box3 = math.sqrt(np.sum(den * ((vx3 - vx3_mw_mean_wholebox)**2)) / np.sum(den))
     v_turb_mw_whole_box = math.sqrt(v_turb_mw_whole_box1**2 + v_turb_mw_whole_box2**2 + v_turb_mw_whole_box3**2)
+
+    # volume weighted turbulent velocity
+    vx1_turb_volw = vx1_sig
+    vx2_turb_volw = vx2_sig
+    vx3_turb_volw = vx3_sig
+    v_turb_rms_volw = np.sqrt(vx1_turb_volw**2 + vx2_turb_volw**2 + vx3_turb_volw**2)
+
+    vx1_volw_mean_wholebox = np.mean(vx1)
+    vx2_volw_mean_wholebox = np.mean(vx2)
+    vx3_volw_mean_wholebox = np.mean(vx3)
+    v_turb_volw_whole_box1 = math.sqrt(np.mean(vx1 - vx1_volw_mean_wholebox)**2)
+    v_turb_volw_whole_box2 = math.sqrt(np.mean(vx2 - vx2_volw_mean_wholebox)**2)
+    v_turb_volw_whole_box3 = math.sqrt(np.mean(vx3 - vx3_volw_mean_wholebox)**2)
+    v_turb_volw_whole_box = math.sqrt(v_turb_volw_whole_box1**2 + v_turb_volw_whole_box2**2 + v_turb_volw_whole_box3**2)   
+    
     # Save 1D arrays to a compressed .npz file
 
     np.savez_compressed(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz',
@@ -327,16 +342,18 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
                         total_energy_sig=total_energy_sig,
                         Be_vol = Be_vol, Be_vol_sig=Be_vol_sig,
                         Be_mw=Be_mw, Be_sig_mw=Be_sig_mw,
-                        emis_vol=emis_vol, vx1_turb_rms_vol=vx1_turb_rms_vol,
-                        emis_sig=emis_sig, emis_mw=emis_mw, emis_sig_mw=emis_sig_mw,
-                        vx2_turb_rms_vol=vx2_turb_rms_vol, vx3_turb_rms_vol=vx3_turb_rms_vol,
-                        v_turb_rms_vol=v_turb_rms_vol,
-                        vx1_turb_mw=vx1_turb_mw, vx2_turb_mw=vx2_turb_mw, vx3_turb_mw=vx3_turb_mw,
-                        v_turb_rms_mw=v_turb_rms_mw,
-                        v_turb_rms_whole_box=v_turb_mw_whole_box, v_turb_rms_whole_box1=v_turb_mw_whole_box1, 
-                        v_turb_rms_whole_box2=v_turb_mw_whole_box2, v_turb_rms_whole_box3=v_turb_mw_whole_box3,
+                        emis_vol=emis_vol, emis_sig=emis_sig, emis_mw=emis_mw, emis_sig_mw=emis_sig_mw,
+                        vx1_turb_rms=vx1_turb_rms_vol, vx2_turb_rms=vx2_turb_rms_vol, vx3_turb_rms=vx3_turb_rms_vol,
+                        v_turb_rms=v_turb_rms_vol,
                         v_turb_mean_wholebox = v_turb_mean_wholebox, v_turb_mean_wholebox1=v_turb_mean_wholebox1,
                         v_turb_mean_wholebox2=v_turb_mean_wholebox2, v_turb_mean_wholebox3=v_turb_mean_wholebox3,
+                        vx1_turb_mw=vx1_turb_mw, vx2_turb_mw=vx2_turb_mw, vx3_turb_mw=vx3_turb_mw,
+                        v_turb_rms_mw=v_turb_rms_mw,
+                        v_turb_mw_whole_box=v_turb_mw_whole_box, v_turb_mw_whole_box1=v_turb_mw_whole_box1, 
+                        v_turb_mw_whole_box2=v_turb_mw_whole_box2, v_turb_mw_whole_box3=v_turb_mw_whole_box3,
+                        v_turb_rms_volw = v_turb_rms_volw, v_turb_volw_whole_box=v_turb_volw_whole_box, vx1_turb_volw=vx1_turb_volw,
+                        vx2_turb_volw=vx2_turb_volw, vx3_turb_volw=vx3_turb_volw, v_turb_volw_whole_box1=v_turb_volw_whole_box1, 
+                        v_turb_volw_whole_box2=v_turb_volw_whole_box2, v_turb_volw_whole_box3=v_turb_volw_whole_box3,
                         number=n, time=tim, factor=F) 
     
 def MakeSlicedPDFs(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, slices, axis='y'):
