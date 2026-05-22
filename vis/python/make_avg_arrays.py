@@ -1105,7 +1105,7 @@ def make_2D_paper_plots(i):
         den_vol = f['den_vol']
         prs_vol = f['prs_vol']
         emis_vol = f['emis_vol']
-        vx1_turb_rms_vol = f['vx1_turb_mw']
+        vx1_turb_rms_vol = f['vx1_turb_mw']         # it's actually mass-weighted, but name was set already so didnt change
         vx2_turb_rms_vol = f['vx2_turb_mw']
         vx3_turb_rms_vol = f['vx3_turb_mw']
         v_turb_rms_vol = f['v_turb_rms_mw']

@@ -41,8 +41,8 @@ cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
-P_0 = 14.02645*4.
-rho_h = 0.001*4.
+P_0 = 14.02645
+rho_h = 0.001
 T_0 = 1.0e5
 delU = 31.
 T_0_code = T_0/TEMPERATURE
@@ -50,9 +50,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 1024
-NY = 2048
-NZ = 1024
+NX = 280
+NY = 1040
+NZ = 280
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsfid4xdens2xboxDoubleRes/"
+dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less256_1024_1_3cold/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -549,10 +549,10 @@ def make_2D_paper_plots(i):
         den_vol = f['den_vol']
         prs_vol = f['prs_vol']
         emis_vol = f['emis_vol']
-        vx1_turb_rms_vol = f['vx1_turb_rms_vol']
-        vx2_turb_rms_vol = f['vx2_turb_rms_vol']
-        vx3_turb_rms_vol = f['vx3_turb_rms_vol']
-        v_turb_rms_vol = f['v_turb_rms_vol']
+        vx1_turb_rms_vol = f['vx1_turb_mw']         # it's actually mass-weighted, but name was set already so didnt change
+        vx2_turb_rms_vol = f['vx2_turb_mw']
+        vx3_turb_rms_vol = f['vx3_turb_mw']
+        v_turb_rms_vol = f['v_turb_rms_mw']
     
     with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n4}with{jump}.npz", 'r') as f:
         rho_av71to250 = f['rho_av']
@@ -732,6 +732,43 @@ def make_2D_paper_plots(i):
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(i) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.savefig(dir +"KH_2D_Z_0_" + str(i).zfill(5) + "_C1grey.png",bbox_inches='tight')
 
+def plot_vturb_profiles():
+
+    global dir, time_0, P_0, delU, T_h, T_inflection, time_mid
+
+    with np.load(dir +f'KH_1D_arrays_time_averaged{n_i}to{n_f}with{jump}.npz', 'r') as f:
+        v_turb_mw_whole_box = f['v_turb_mw_whole_box']/delU
+        v_turb_mw_whole_box1 = f['v_turb_mw_whole_box1']/delU
+        v_turb_mw_whole_box2 = f['v_turb_mw_whole_box2']/delU
+        v_turb_mw_whole_box3 = f['v_turb_mw_whole_box3']/delU
+        v_turb_volw_whole_box = f['v_turb_volw_whole_box']/delU
+        v_turb_volw_whole_box1 = f['v_turb_volw_whole_box1']/delU
+        v_turb_volw_whole_box2 = f['v_turb_volw_whole_box2']/delU
+        v_turb_volw_whole_box3 = f['v_turb_volw_whole_box3']/delU
+        v_turb_wholebox = f['v_turb_wholebox']/delU
+        v_turb_wholebox1 = f['v_turb_wholebox1']/delU
+        v_turb_wholebox2 = f['v_turb_wholebox2']/delU
+        v_turb_wholebox3 = f['v_turb_wholebox3']/delU
+
+    plt.figure(figsize=(8,6))
+    plt.plot(v_turb_mw_whole_box, color='blue', label=r"$mass-weighted$", linestyle='-')
+    plt.plot(v_turb_volw_whole_box, color='black', label=r"$volume-weighted$", linestyle='-')
+    plt.plot(v_turb_wholebox, color='red', label=r"$unweighted$", linestyle='-')
+    plt.plot(v_turb_mw_whole_box1, color='blue', label=r"$u_{turb,x}$", linestyle='--')
+    plt.plot(v_turb_mw_whole_box2, color='blue', label=r"$u_{turb,z}$", linestyle=':')
+    plt.plot(v_turb_volw_whole_box1, color='black', linestyle='--')
+    plt.plot(v_turb_volw_whole_box2, color='black', linestyle=':')
+    plt.plot(v_turb_wholebox1, color='red', linestyle='--')
+    plt.plot(v_turb_wholebox2, color='red', linestyle=':')
+    plt.plot(v_turb_mw_whole_box3, color='blue', label=r"$u_{turb, y}$", linestyle='-.')
+    plt.plot(v_turb_volw_whole_box3, color='black', linestyle='-.')
+    plt.plot(v_turb_wholebox3, color='red', linestyle='-.')
+    plt.yscale('log')
+    plt.ylabel(r"$u_{turb}/\Delta u$", fontsize=16)
+    plt.legend(loc='best', fontsize=12, frameon=False)
+    plt.grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
+    plt.savefig(dir + 'turbulent_velocity_profiles.png', bbox_inches='tight')
+
 if __name__ == "__main__":
 
     global time_0, n1, n2, n3, n4, jump, time_mid
@@ -743,13 +780,13 @@ if __name__ == "__main__":
     temp_arr = np.logspace(4, 6, 1000)
     P_0_array = P_0 * np.ones_like(temp_arr)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
-    cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
+    cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
 
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
-    time_0 = time_mid
+
     plt.figure(figsize=(8,6))
     plt.plot(np.logspace(4,6,1000), np.vectorize(ISMCoolFn)(np.logspace(4,6,1000)), color='blue')
     plt.yscale('log')
@@ -759,10 +796,10 @@ if __name__ == "__main__":
     print(time_0)
 
     n_i = 0
-    n_f = 125
+    n_f = 250
 
-    n1 = 36
-    n4 = 125
+    n1 = 71
+    n4 = 250
     n2 = n1 + (n4 - n1 +1)//3
     n3 = n2 + (n4 - n1 +1)//3
 
@@ -770,7 +807,7 @@ if __name__ == "__main__":
     jump = skip
 
     plot_profiles()
-    make_2D_paper_plots(85)
-
+    make_2D_paper_plots(169)
+    plot_vturb_profiles()
     print("1D arrays created successfully.")
 
