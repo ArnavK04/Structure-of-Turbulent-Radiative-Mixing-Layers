@@ -694,6 +694,10 @@ def make_spacetime_plots(end, trmlframeflag = False):
     full_vx2turbmw = np.zeros((end - start + 1, y_size))
     full_vx3turbmw = np.zeros((end - start + 1, y_size))
     full_vturbmw = np.zeros((end - start + 1, y_size))
+    full_vx1turbvolw = np.zeros((end - start + 1, y_size))
+    full_vx2turbvolw = np.zeros((end - start + 1, y_size))
+    full_vx3turbvolw = np.zeros((end - start + 1, y_size))
+    full_vturbvolw = np.zeros((end - start + 1, y_size))
 
     F=1
 
@@ -710,7 +714,8 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
         v_TRML_integrated = 0.0
         frame = "trml_frame"
-        make_turb_plot_vol_flag = True
+        make_turb_plot_flag = True
+        make_turb_plot_volw_flag = True
         make_turb_plot_mw_flag = True
 
         with np.load(dir + 'KH_1D_arrays_snapshot_' + str(start).zfill(5) + f'C{F}.npz', 'r') as f:
@@ -732,14 +737,18 @@ def make_spacetime_plots(end, trmlframeflag = False):
                 p_vol = f['prs_vol']
                 vx3_vol = f['vx3_vol']
                 ps_vol = f['ps_vol']
-                vx1_turb_rms_vol = f['vx1_turb_rms_vol']
-                vx2_turb_rms_vol = f['vx2_turb_rms_vol']
-                vx3_turb_rms_vol = f['vx3_turb_rms_vol']
-                v_turb_rms_vol = f['v_turb_rms_vol']
+                vx1_turb_rms = f['vx1_turb_rms']
+                vx2_turb_rms = f['vx2_turb_rms']
+                vx3_turb_rms = f['vx3_turb_rms']
+                v_turb_rms = f['v_turb_rms']
                 vx1_turb_rms_mw = f['vx1_turb_mw']
                 vx2_turb_rms_mw = f['vx2_turb_mw']
                 vx3_turb_rms_mw = f['vx3_turb_mw']
                 v_turb_rms_mw = f['v_turb_rms_mw']
+                vx1_turb_rms_volw = f['vx1_turb_volw']
+                vx2_turb_rms_volw = f['vx2_turb_volw']
+                vx3_turb_rms_volw = f['vx3_turb_volw']
+                v_turb_rms_volw = f['v_turb_rms_volw']
                 pseudo_entropy_vol = np.log10((p_vol/P_0)/((rho_vol/rho_h)**GAMMA))
 
             Y_lims -= v_TRML_integrated         # shifting Y_lims to account for the movement of the interface due to the TRML velocity.
@@ -759,14 +768,19 @@ def make_spacetime_plots(end, trmlframeflag = False):
             vx3_vol = interp(vx3_vol)
             ps_vol = interp(ps_vol)
             pseudo_entropy_vol = interp(pseudo_entropy_vol)
-            vx1_turb_rms_vol = interp(vx1_turb_rms_vol)
-            vx2_turb_rms_vol = interp(vx2_turb_rms_vol)
-            vx3_turb_rms_vol = interp(vx3_turb_rms_vol)
-            v_turb_rms_vol = interp(v_turb_rms_vol)
+            vx1_turb_rms = interp(vx1_turb_rms)
+            vx2_turb_rms = interp(vx2_turb_rms)
+            vx3_turb_rms = interp(vx3_turb_rms)
+            v_turb_rms = interp(v_turb_rms)
             vx1_turb_rms_mw = interp(vx1_turb_rms_mw)
             vx2_turb_rms_mw = interp(vx2_turb_rms_mw)
             vx3_turb_rms_mw = interp(vx3_turb_rms_mw)
             v_turb_rms_mw = interp(v_turb_rms_mw)
+            vx1_turb_rms_volw = interp(vx1_turb_rms_volw)
+            vx2_turb_rms_volw = interp(vx2_turb_rms_volw)
+            vx3_turb_rms_volw = interp(vx3_turb_rms_volw)
+            v_turb_rms_volw = interp(v_turb_rms_volw) 
+
 
             full_velx[n, :] = vx1_vol
             full_vely[n, :] = vx2_vol
@@ -776,20 +790,25 @@ def make_spacetime_plots(end, trmlframeflag = False):
             full_pres[n, :] = p_vol
             full_scalar[n, :] = ps_vol
             full_pseudo_entropy[n, :] = pseudo_entropy_vol
-            full_scalar_vx1turb[n, :] = vx1_turb_rms_vol
-            full_scalar_vx2turb[n, :] = vx2_turb_rms_vol
-            full_scalar_vx3turb[n, :] = vx3_turb_rms_vol
-            full_scalar_vturb[n, :] = v_turb_rms_vol
+            full_scalar_vx1turb[n, :] = vx1_turb_rms
+            full_scalar_vx2turb[n, :] = vx2_turb_rms
+            full_scalar_vx3turb[n, :] = vx3_turb_rms
+            full_scalar_vturb[n, :] = v_turb_rms
             full_vx1turbmw[n, :] = vx1_turb_rms_mw
             full_vx2turbmw[n, :] = vx2_turb_rms_mw
             full_vx3turbmw[n, :] = vx3_turb_rms_mw
             full_vturbmw[n, :] = v_turb_rms_mw
+            full_vx1turbvolw[n, :] = vx1_turb_rms_volw
+            full_vx2turbvolw[n, :] = vx2_turb_rms_volw
+            full_vx3turbvolw[n, :] = vx3_turb_rms_volw
+            full_vturbvolw[n, :] = v_turb_rms_volw
 
         Y_range = Y_range_final
 
     else : 
         frame = "sim_frame"
-        make_turb_plot_vol_flag = False
+        make_turb_plot_flag = False
+        make_turb_plot_volw_flag = False
         make_turb_plot_mw_flag = False
 
         for n in range(start,end+1, jump):
@@ -936,7 +955,7 @@ def make_spacetime_plots(end, trmlframeflag = False):
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
 
-    if make_turb_plot_vol_flag:
+    if make_turb_plot_flag:
         datasets = [full_scalar_vx1turb/delU, full_scalar_vx2turb/delU, full_scalar_vx3turb/delU, full_scalar_vturb/delU]
         labels = [r"$v_{turb,x}/\Delta u$", r"$v_{turb,z}/\Delta u$", r"$v_{turb,y}/\Delta u$", r"$v_{turb}/\Delta u$"]
         cmaps = ['inferno', 'inferno', 'inferno', 'inferno']
@@ -1013,6 +1032,46 @@ def make_spacetime_plots(end, trmlframeflag = False):
 
         # Save the plot
         save_path = f"{dir}KH_spacetime_vturb_mw_trml_frame_time_averaged{start}to{end}with{jump}.png"
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+
+    if make_turb_plot_volw_flag:
+        datasets = [full_vx1turbvolw/delU, full_vx2turbvolw/delU, full_vx3turbvolw/delU, full_vturbvolw/delU]
+        labels = [r"$v_{turb,x,volw}/\Delta u$", r"$v_{turb,z,volw}/\Delta u$", r"$v_{turb,y,volw}/\Delta u$", r"$v_{turb,volw}/\Delta u$"]
+        cmaps = ['inferno', 'inferno', 'inferno', 'inferno']
+
+        fig, ax = plt.subplots(1, 4, figsize=(14, 10), constrained_layout=True)
+        ax = ax.flatten()
+
+
+        for i in range(4):
+            im = ax[i].imshow(datasets[i].T, aspect='auto', origin='lower', 
+                        extent=(timei, timef, Y_range[0], Y_range[-1]), 
+                        cmap=cmaps[i])
+            
+            # Set limits and small fonts
+            ax[i].set_xlim(timei, timef)
+            ax[i].tick_params(axis='both', labelsize=12)
+            ax[i].set_xlabel(r"$t/ t_{cool,min}$", fontsize=14)
+            
+            # Only label the Y-axis on the first plot to save space
+            if i == 0:
+                ax[i].set_ylabel(r"$z/\Delta u t_{cool,min}$", fontsize=14)
+            else:
+                ax[i].tick_params(labelleft=False)
+
+            # Make the individual colorbar vertical on the right
+            cbar = fig.colorbar(im, ax=ax[i], orientation='horizontal', location='top', pad=0.02)
+            cbar.ax.tick_params(labelsize=11)
+            ax[i].text(0.05, 0.95,labels[i],transform=ax[i].transAxes,ha='left', va='top',fontsize=16,color='black',bbox=dict(facecolor='white',edgecolor='black',boxstyle='round,pad=0.2'))
+
+            # Tight borders
+            for spine in ax[i].spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(0.8)
+
+        # Save the plot
+        save_path = f"{dir}KH_spacetime_vturb_volw_trml_frame_time_averaged{start}to{end}with{jump}.png"
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
 
