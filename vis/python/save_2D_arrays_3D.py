@@ -71,7 +71,7 @@ def SetGlobals(path_to_files, F):
             for value in header:
                 f.write(f"{value}\n")
 
-def ISMCoolFn_stock(temp):
+def ISMCoolFn(temp):
     # original data from Shure et al. paper, covers 4.12 < logt < 8.16
     lhd = [
         -22.5977, -21.9689, -21.5972, -21.4615, -21.4789, -21.5497, -21.6211, -21.6595,
@@ -115,7 +115,10 @@ def ISMCoolFn_stock(temp):
     logcool = (lhd[ipps+1]*dx - lhd[ipps]*(dx - 0.04))*25.0
     return pow(10.0,logcool)
 
-def ISMCoolFn(temp):
+def ISMCoolFn_nocool(temp):
+    return 0.0
+
+def ISMCoolFn_inv400less(temp):
     mean  = 5.0
     sigma = 0.2
 
