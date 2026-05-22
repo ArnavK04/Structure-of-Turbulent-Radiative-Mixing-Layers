@@ -1350,20 +1350,20 @@ if __name__ == "__main__":
     jump = skip
     if not MPI_DEF:
         find_temporal_z0(0,250,skip)
-        #make_1D(0,125,skip)
+        make_1D(0,250,skip)
         print("1D arrays created successfully.")
         make_spacetime_plots(250, trmlframeflag = True)
         print("Spacetime plots in TRML frame created successfully.")
         make_spacetime_plots(250, trmlframeflag = False)
         print("Spacetime plots in simulation frame created successfully.")
-        """make_1D(36,125,skip)
-        make_1D(36,65,skip)
-        make_1D(66,95,skip)
-        make_1D(96,125,skip)
-        make_PDF(36,125,skip)
-        make_PDF(36,65,skip)
-        make_PDF(66,95,skip)
-        make_PDF(96,125,skip)"""
+        make_1D(71,250,skip)
+        make_1D(71,130,skip)
+        make_1D(131,190,skip)
+        make_1D(191,250,skip)
+        make_PDF(71,250,skip)
+        make_PDF(71,130,skip)
+        make_PDF(131,190,skip)
+        make_PDF(191,250,skip)
     if MPI_DEF:
         for N in range(N1_local, N2_local):
             make_2D_paper_plots(N)
@@ -1377,9 +1377,9 @@ if __name__ == "__main__":
             plot_sliced_PDFs('y',n)
             plot_sliced_PDFs('z',n)
     if not MPI_DEF:        
-        """find_temporal_z0(36,65,skip)
-        find_temporal_z0(66,95,skip)
-        find_temporal_z0(96,125,skip)
-        find_temporal_z0(36,125,skip)"""
+        find_temporal_z0(71,130,skip)
+        find_temporal_z0(131,190,skip)
+        find_temporal_z0(191,250,skip)
+        find_temporal_z0(71,250,skip)
     print("1D arrays created successfully.")
 
