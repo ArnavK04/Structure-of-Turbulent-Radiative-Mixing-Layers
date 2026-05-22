@@ -171,10 +171,14 @@ def make_1D(start, end, jump):
     v_turb_mw_whole_box1 = np.zeros(end - start + 1)
     v_turb_mw_whole_box2 = np.zeros(end - start + 1)
     v_turb_mw_whole_box3 = np.zeros(end - start + 1)
-    v_turb_vol_whole_box = np.zeros(end - start + 1)
-    v_turb_vol_whole_box1 = np.zeros(end - start + 1)
-    v_turb_vol_whole_box2 = np.zeros(end - start + 1)
-    v_turb_vol_whole_box3 = np.zeros(end - start + 1)
+    v_turb_volw_whole_box = np.zeros(end - start + 1)
+    v_turb_volw_whole_box1 = np.zeros(end - start + 1)
+    v_turb_volw_whole_box2 = np.zeros(end - start + 1)
+    v_turb_volw_whole_box3 = np.zeros(end - start + 1)
+    v_turb_wholebox1 = np.zeros(end - start + 1)
+    v_turb_wholebox2 = np.zeros(end - start + 1)
+    v_turb_wholebox3 = np.zeros(end - start + 1)
+    v_turb_wholebox = np.zeros(end - start + 1)
 
     if (start!=0):
         with np.load(dir + f"KH_1D_arrays_snapshot{n_i}_{n_f}_{str(start).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
@@ -216,14 +220,18 @@ def make_1D(start, end, jump):
             p_vol = f['prs_vol']
             vx3_vol = f['vx3_vol']
             rho_mw = (rho_sig**2 + rho_vol**2)/ rho_vol
-            vturbvol_wb1 = f['v_turb_mean_wholebox1']
-            vturbvol_wb2 = f['v_turb_mean_wholebox2']
-            vturbvol_wb3 = f['v_turb_mean_wholebox3']
-            vturbvol_wb = f['v_turb_mean_wholebox']
-            vturbmw_wb1 = f['v_turb_rms_whole_box1']
-            vturbmw_wb2 = f['v_turb_rms_whole_box2']
-            vturbmw_wb3 = f['v_turb_rms_whole_box3']
-            vturbmw_wb = f['v_turb_rms_whole_box']
+            vturb_wb1 = f['v_turb_mean_wholebox1']
+            vturb_wb2 = f['v_turb_mean_wholebox2']
+            vturb_wb3 = f['v_turb_mean_wholebox3']
+            vturb_wb = f['v_turb_mean_wholebox']
+            vturbmw_wb1 = f['v_turb_mw_whole_box1']
+            vturbmw_wb2 = f['v_turb_mw_whole_box2']
+            vturbmw_wb3 = f['v_turb_mw_whole_box3']
+            vturbmw_wb = f['v_turb_mw_whole_box']
+            vturbvolw_wb = f['v_turb_volw_whole_box']
+            vturbvolw_wb1 = f['v_turb_volw_whole_box1']
+            vturbvolw_wb2 = f['v_turb_volw_whole_box2']
+            vturbvolw_wb3 = f['v_turb_volw_whole_box3']
             
 
         energy_density_integrated[count] = (np.cumsum(energy_dens_vol)*(Y_lims[1] - Y_lims[0]))[-1]
@@ -231,10 +239,14 @@ def make_1D(start, end, jump):
         v_turb_mw_whole_box1[count] = vturbmw_wb1
         v_turb_mw_whole_box2[count] = vturbmw_wb2
         v_turb_mw_whole_box3[count] = vturbmw_wb3
-        v_turb_vol_whole_box[count] = vturbvol_wb
-        v_turb_vol_whole_box1[count] = vturbvol_wb1
-        v_turb_vol_whole_box2[count] = vturbvol_wb2
-        v_turb_vol_whole_box3[count] = vturbvol_wb3
+        v_turb_wholebox[count] = vturb_wb
+        v_turb_wholebox1[count] = vturb_wb1
+        v_turb_wholebox2[count] = vturb_wb2
+        v_turb_wholebox3[count] = vturb_wb3
+        v_turb_volw_whole_box[count] = vturbvolw_wb
+        v_turb_volw_whole_box1[count] = vturbvolw_wb1
+        v_turb_volw_whole_box2[count] = vturbvolw_wb2
+        v_turb_volw_whole_box3[count] = vturbvolw_wb3
 
         count+=1
 
@@ -394,8 +406,8 @@ def make_1D(start, end, jump):
                 Be_vol_av = Be_vol_av, Be_sig = Be_sig,
                 p_vol_av = p_vol_av, p_sig = p2_vol_av,Sigma_dot_cool_hist = Sigma_dot_cool_hist, Y_range_final = Y_range_final, energy_density_integrated = energy_density_integrated,
                 v_turb_mw_whole_box = v_turb_mw_whole_box, v_turb_mw_whole_box1 = v_turb_mw_whole_box1, v_turb_mw_whole_box2 = v_turb_mw_whole_box2, v_turb_mw_whole_box3 = v_turb_mw_whole_box3,
-                v_turb_vol_whole_box = v_turb_vol_whole_box, v_turb_vol_whole_box1 = v_turb_vol_whole_box1, v_turb_vol_whole_box2 = v_turb_vol_whole_box2, v_turb_vol_whole_box3 = v_turb_vol_whole_box3
-                )
+                v_turb_volw_whole_box = v_turb_volw_whole_box, v_turb_volw_whole_box1 = v_turb_volw_whole_box1, v_turb_volw_whole_box2 = v_turb_volw_whole_box2, v_turb_volw_whole_box3 = v_turb_volw_whole_box3,
+                v_turb_wholebox = v_turb_wholebox, v_turb_wholebox1 = v_turb_wholebox1, v_turb_wholebox2 = v_turb_wholebox2, v_turb_wholebox3 = v_turb_wholebox3)
 
     del rho_av, rho_vx1_av, rho_vx2_av, energy_dens_av, emis_vol_av
     del rho_sig, rho_vx1_sig, rho_vx2_sig, energy_dens_sig, emis_vol_sig
