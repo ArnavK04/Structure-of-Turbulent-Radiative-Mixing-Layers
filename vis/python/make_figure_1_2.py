@@ -37,7 +37,7 @@ GAMMA = 5.0/3.0
 # De- dimensionalising facotrs
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.6666667
+cold_frac = 0.66666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -50,9 +50,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 280
-NY = 1040
-NZ = 280
+NX = 128
+NY = 512
+NZ = 128
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsfid3D_1040_cool/"
+dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less128_512/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -800,7 +800,6 @@ if __name__ == "__main__":
     cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
-    time_0 = time_mid
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
@@ -813,10 +812,10 @@ if __name__ == "__main__":
     print(time_0)
 
     n_i = 0
-    n_f = 250
+    n_f = 125
 
-    n1 = 71
-    n4 = 250
+    n1 = 36
+    n4 = 125
     n2 = n1 + (n4 - n1 +1)//3
     n3 = n2 + (n4 - n1 +1)//3
 
@@ -824,7 +823,7 @@ if __name__ == "__main__":
     jump = skip
 
     plot_profiles()
-    make_2D_paper_plots(169)
+    make_2D_paper_plots(85)
     plot_vturb_profiles()
     print("1D arrays created successfully.")
 

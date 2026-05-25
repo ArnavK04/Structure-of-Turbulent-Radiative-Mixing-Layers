@@ -7,15 +7,15 @@ import math
 global jump
 jump = 1
 global n1, n2, n3, n4
-n1 = 71
-n4 = 250
+n1 = 36
+n4 = 125
 n2 = n1 + (n4 - n1 +1)//3
 n3 = n2 + (n4 - n1 +1)//3
 
 #dir = r"../../../Downloads/Astro_zenith_data/new/snapsfidcool2D/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial64cool/"
 #dir = r"../../../Downloads/Aryabhatta_data/snapshalfres4xbox/"
-dir = r"../../../Downloads/Trillium_data/snapsfid3D_1040_cool/"
+dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less128_512/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
 filename = dir + f"KH_PDFs_time_averaged{n1}to{n4}with{jump}.npz"
@@ -50,9 +50,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 280
-NY = 1040
-NZ = 280
+NX = 128
+NY = 512
+NZ = 128
 max_level = 0
 DY = 40./NY
 T_inflection = (1.1e4 + 0.9e6)/2
@@ -140,7 +140,6 @@ if __name__ == "__main__":
     cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
-    time_0 = time_mid
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
 
     z = np.linspace(-20, 20, NY)
