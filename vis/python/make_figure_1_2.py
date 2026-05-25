@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less256_1024_1_3cold/"
+dir = r"../../../Downloads/Trillium_data/snapsfid3D_1040_cool/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -750,24 +750,41 @@ def plot_vturb_profiles():
         v_turb_wholebox2 = f['v_turb_wholebox2']/delU
         v_turb_wholebox3 = f['v_turb_wholebox3']/delU
 
-    plt.figure(figsize=(8,6))
-    plt.plot(v_turb_mw_whole_box, color='blue', label=r"$mass-weighted$", linestyle='-')
+    plt.figure(figsize=(14,8))
+
+    plt.subplot(1,2,1)
+    plt.plot(v_turb_mw_whole_box, color='blue', linestyle='-')
     plt.plot(v_turb_volw_whole_box, color='black', label=r"$volume-weighted$", linestyle='-')
-    plt.plot(v_turb_wholebox, color='red', label=r"$unweighted$", linestyle='-')
-    plt.plot(v_turb_mw_whole_box1, color='blue', label=r"$u_{turb,x}$", linestyle='--')
-    plt.plot(v_turb_mw_whole_box2, color='blue', label=r"$u_{turb,z}$", linestyle=':')
+    plt.plot(v_turb_wholebox, color='red', linestyle='-')
+    plt.plot(v_turb_mw_whole_box1, color='blue', linestyle='--')
+    plt.plot(v_turb_mw_whole_box2, color='blue', linestyle=':')
     plt.plot(v_turb_volw_whole_box1, color='black', linestyle='--')
     plt.plot(v_turb_volw_whole_box2, color='black', linestyle=':')
     plt.plot(v_turb_wholebox1, color='red', linestyle='--')
     plt.plot(v_turb_wholebox2, color='red', linestyle=':')
-    plt.plot(v_turb_mw_whole_box3, color='blue', label=r"$u_{turb, y}$", linestyle='-.')
+    plt.plot(v_turb_mw_whole_box3, color='blue', linestyle='-.')
     plt.plot(v_turb_volw_whole_box3, color='black', linestyle='-.')
     plt.plot(v_turb_wholebox3, color='red', linestyle='-.')
     plt.yscale('log')
     plt.ylabel(r"$u_{turb}/\Delta u$", fontsize=16)
     plt.legend(loc='best', fontsize=12, frameon=False)
     plt.grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
-    plt.savefig(dir + 'turbulent_velocity_profiles.png', bbox_inches='tight')
+
+    plt.subplot(1,2,2)
+    plt.plot(v_turb_mw_whole_box, color='blue', label=r"$mass-weighted$", linestyle='-')
+    plt.plot(v_turb_wholebox, color='red', label=r"$previous\ def$", linestyle='-')
+    plt.plot(v_turb_mw_whole_box1, color='blue', label=r"$u_{turb,x}$", linestyle='--')
+    plt.plot(v_turb_mw_whole_box2, color='blue', label=r"$u_{turb,z}$", linestyle=':')
+    plt.plot(v_turb_wholebox1, color='red', linestyle='--')
+    plt.plot(v_turb_wholebox2, color='red', linestyle=':')
+    plt.plot(v_turb_mw_whole_box3, color='blue', label=r"$u_{turb, y}$", linestyle='-.')
+    plt.plot(v_turb_wholebox3, color='red', linestyle='-.')
+    plt.yscale('log')
+    plt.ylim(bottom=1e-3)
+    plt.legend(loc='best', fontsize=12, frameon=False)
+    plt.grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
+
+    plt.savefig(dir + 'turbulent_velocity_profiles.png', bbox_inches='tight', dpi=300)
 
 if __name__ == "__main__":
 
@@ -783,7 +800,7 @@ if __name__ == "__main__":
     cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
-
+    time_0 = time_mid
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 

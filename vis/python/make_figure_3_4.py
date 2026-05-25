@@ -7,15 +7,15 @@ import math
 global jump
 jump = 1
 global n1, n2, n3, n4
-n1 = 36
-n4 = 125
+n1 = 71
+n4 = 250
 n2 = n1 + (n4 - n1 +1)//3
 n3 = n2 + (n4 - n1 +1)//3
 
 #dir = r"../../../Downloads/Astro_zenith_data/new/snapsfidcool2D/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial64cool/"
 #dir = r"../../../Downloads/Aryabhatta_data/snapshalfres4xbox/"
-dir = r"../../../Downloads/Trillium_data/snapsfid4xdens2xboxDoubleRes/"
+dir = r"../../../Downloads/Trillium_data/snapsfid3D_1040_cool/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
 filename = dir + f"KH_PDFs_time_averaged{n1}to{n4}with{jump}.npz"
@@ -37,12 +37,12 @@ CHI = 100.0
 GAMMA = 5.0/3.0
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.3333333
+cold_frac = 0.6666667
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
-P_0 = 14.02645*4.
-rho_h = 0.001*4.
+P_0 = 14.02645
+rho_h = 0.001
 T_0 = 1.0e5
 delU = 31.
 T_0_code = T_0/TEMPERATURE
@@ -50,9 +50,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 1024
-NY = 2048
-NZ = 1024
+NX = 280
+NY = 1040
+NZ = 280
 max_level = 0
 DY = 40./NY
 T_inflection = (1.1e4 + 0.9e6)/2
@@ -137,9 +137,10 @@ if __name__ == "__main__":
     T_0 = 1e5
     time_mid = 3. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
-    cooling_arr = np.divide(5. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
+    cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
     time_0 = np.min(cooling_arr)
+    time_0 = time_mid
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
 
     z = np.linspace(-20, 20, NY)

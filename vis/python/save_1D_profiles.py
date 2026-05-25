@@ -254,12 +254,9 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
     v_turb_rms_vol = np.sqrt(np.mean(v_turb_rms**2, axis=(0,2)))
 
     den_mean = np.mean(den)
-    vx1_turb_vol_ = (rhoXvx1 - np.mean(rhoXvx1))/den_mean
-    vx2_turb_vol_ = (rhoXvx2 - np.mean(rhoXvx2))/den_mean
-    vx3_turb_vol_ = (rhoXvx3 - np.mean(rhoXvx3))/den_mean
-    v_turb_mean_wholebox1 = np.sqrt(np.mean(vx1_turb_vol_**2))
-    v_turb_mean_wholebox2 = np.sqrt(np.mean(vx2_turb_vol_**2))
-    v_turb_mean_wholebox3 = np.sqrt(np.mean(vx3_turb_vol_**2))
+    v_turb_mean_wholebox1 = np.sqrt(np.mean(vx1_turb**2))
+    v_turb_mean_wholebox2 = np.sqrt(np.mean(vx2_turb**2))
+    v_turb_mean_wholebox3 = np.sqrt(np.mean(vx3_turb**2))
     v_turb_mean_wholebox = np.sqrt(v_turb_mean_wholebox1**2 + v_turb_mean_wholebox2**2 + v_turb_mean_wholebox3**2)
 
     # mass weighted turbulent velocity
@@ -271,26 +268,23 @@ def Save1D_arrays(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F):
     vx3_turb_mw = np.sqrt(np.sum(den * fluc_vx3**2, axis=(0,2)) / np.sum(den, axis=(0,2)))
     v_turb_rms_mw = np.sqrt(vx1_turb_mw**2 + vx2_turb_mw**2 + vx3_turb_mw**2)
 
-    vx1_mw_mean_wholebox = np.sum(vx1 * den) / np.sum(den)
-    vx2_mw_mean_wholebox = np.sum(vx2 * den) / np.sum(den)
-    vx3_mw_mean_wholebox = np.sum(vx3 * den) / np.sum(den)
-    v_turb_mw_whole_box1 = math.sqrt(np.sum(den * ((vx1 - vx1_mw_mean_wholebox)**2)) / np.sum(den))
-    v_turb_mw_whole_box2 = math.sqrt(np.sum(den * ((vx2 - vx2_mw_mean_wholebox)**2)) / np.sum(den))
-    v_turb_mw_whole_box3 = math.sqrt(np.sum(den * ((vx3 - vx3_mw_mean_wholebox)**2)) / np.sum(den))
+    v_turb_mw_whole_box1 = math.sqrt(np.sum(den * (fluc_vx1**2)) / np.sum(den))
+    v_turb_mw_whole_box2 = math.sqrt(np.sum(den * (fluc_vx2**2)) / np.sum(den))
+    v_turb_mw_whole_box3 = math.sqrt(np.sum(den * (fluc_vx3**2)) / np.sum(den))
     v_turb_mw_whole_box = math.sqrt(v_turb_mw_whole_box1**2 + v_turb_mw_whole_box2**2 + v_turb_mw_whole_box3**2)
 
     # volume weighted turbulent velocity
-    vx1_turb_volw = vx1_sig
-    vx2_turb_volw = vx2_sig
-    vx3_turb_volw = vx3_sig
+    fluc_vx1_volw = vx1 - vx1_1D[np.newaxis, :, np.newaxis]
+    fluc_vx2_volw = vx2 - vx2_1D[np.newaxis, :, np.newaxis]
+    fluc_vx3_volw = vx3 - vx3_1D[np.newaxis, :, np.newaxis]
+    vx1_turb_volw = np.sqrt(np.mean(fluc_vx1_volw**2, axis=(0,2)))
+    vx2_turb_volw = np.sqrt(np.mean(fluc_vx2_volw**2, axis=(0,2)))
+    vx3_turb_volw = np.sqrt(np.mean(fluc_vx3_volw**2, axis=(0,2)))
     v_turb_rms_volw = np.sqrt(vx1_turb_volw**2 + vx2_turb_volw**2 + vx3_turb_volw**2)
 
-    vx1_volw_mean_wholebox = np.mean(vx1)
-    vx2_volw_mean_wholebox = np.mean(vx2)
-    vx3_volw_mean_wholebox = np.mean(vx3)
-    v_turb_volw_whole_box1 = math.sqrt(np.mean(vx1 - vx1_volw_mean_wholebox)**2)
-    v_turb_volw_whole_box2 = math.sqrt(np.mean(vx2 - vx2_volw_mean_wholebox)**2)
-    v_turb_volw_whole_box3 = math.sqrt(np.mean(vx3 - vx3_volw_mean_wholebox)**2)
+    v_turb_volw_whole_box1 = math.sqrt(np.mean(fluc_vx1_volw**2))
+    v_turb_volw_whole_box2 = math.sqrt(np.mean(fluc_vx2_volw**2))
+    v_turb_volw_whole_box3 = math.sqrt(np.mean(fluc_vx3_volw**2))
     v_turb_volw_whole_box = math.sqrt(v_turb_volw_whole_box1**2 + v_turb_volw_whole_box2**2 + v_turb_volw_whole_box3**2)   
     
     # Save 1D arrays to a compressed .npz file
