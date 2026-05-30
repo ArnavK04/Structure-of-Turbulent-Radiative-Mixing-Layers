@@ -71,7 +71,10 @@ def SetGlobals(path_to_files, F):
             for value in header:
                 f.write(f"{value}\n")
 
+
 def ISMCoolFn_stock(temp):
+
+    norm22k = 3.5350949795856343/21.866519671987078
     # original data from Shure et al. paper, covers 4.12 < logt < 8.16
     lhd = [
         -22.5977, -21.9689, -21.5972, -21.4615, -21.4789, -21.5497, -21.6211, -21.6595,
@@ -95,13 +98,13 @@ def ISMCoolFn_stock(temp):
       if (temp < 1.05e4):
         return 0.0
       else: 
-        return (2.0e-19*math.exp(-1.184e5/(temp + 1.0e3)) + 2.8e-28*math.sqrt(temp)*math.exp(-92.0/temp))
+        return norm22k * (2.0e-19*math.exp(-1.184e5/(temp + 1.0e3)) + 2.8e-28*math.sqrt(temp)*math.exp(-92.0/temp))
   
     if (temp > 0.95e6):
       return 0.0
     # for temperatures above 10^8.15 use CGOLS fit
     if (logt > 8.15):
-      return pow(10.0, (0.45*logt - 26.065))
+      return norm22k * pow(10.0, (0.45*logt - 26.065))
   
     # in between values of 4.2 < log(T) < 8.15
     # linear interpolation of tabulated SPEX cooling rate
@@ -113,12 +116,12 @@ def ISMCoolFn_stock(temp):
     x0 = 4.12 + 0.04*(float)(ipps)
     dx = logt - x0
     logcool = (lhd[ipps+1]*dx - lhd[ipps]*(dx - 0.04))*25.0
-    return pow(10.0,logcool)
+    return norm22k * pow(10.0,logcool)
 
-def ISMCoolFn_norad(temp):
-    return 0.0
+def ISMCoolFn_400invless(temp):
 
-def ISMCoolFn(temp):
+    norm22k = 1.0
+
     mean  = 5.0
     sigma = 0.2
 
@@ -129,9 +132,12 @@ def ISMCoolFn(temp):
     lambda_T = math.exp(0.5 * ((logt - mean)/sigma)*((logt - mean)/sigma))
 
     norm = 5.253246378625558e-28
-    return (norm/4.0) * lambda_T
+    return (norm22k * norm/4.0) * lambda_T
 
 def ISMCoolFn_normlog(temp):
+
+    norm22k = 4.841586997370533/21.866519671987078
+
     mean  = 5.0
     sigma = 0.2
 
@@ -142,23 +148,32 @@ def ISMCoolFn_normlog(temp):
     lambda_T = math.exp(-0.5 * ((logt - mean)/sigma)*((logt - mean)/sigma))
 
     norm = 5.4591716620684276e-21
-    return norm * lambda_T
+    return norm22k * norm * lambda_T
+
+def ISMCoolFn_hotpeakcutoff75(temp):
+   
+    norm22k = 13.226398492299235/21.866519671987078
+
+    if (temp < 1.05e4) or (temp > 0.75e6):
+        return 0.0
+       
+    norm_hotpeak = 5.4591716620684276e-43
+    return norm22k * norm_hotpeak * (temp**4)
+
+def ISMCoolFn_nonradiative(temp):
+    return 0.0
 
 def ISMCoolFn_const400less(temp):
+
+    norm22k = 239.77557073519606/21.866519671987078
+
     # return a constant cooling rate 
     if (temp < 1.05e4) or (temp > 0.95e6):
         return 0.0
 
     norm_factor_const_lambda = 7.457876781873938e-24
 
-    return (norm_factor_const_lambda/4.0)
-
-def ISMCoolFn_hotpeak(temp):
-    
-    if (temp < 1.05e4) or (temp > 0.95e6):
-        return 0.0
-    norm_hotpeak = 5.4591716620684276e-43
-    return (norm_hotpeak)*temp**4
+    return norm22k * norm_factor_const_lambda/4.0
 
 def CoarseByFactor(array, factor):
     """
@@ -229,17 +244,19 @@ def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
-    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
-    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
-    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
-    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, X, 'x')
-    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, X, 'x')
-    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, X, 'x')
+    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
+    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
+    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
+    den_vol_ = np.mean(den, axis=(0,2))
+    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
-    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2) 
+    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, X, 'x')
+    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, X, 'x')
+    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, X, 'x')
+
+    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, X, 'x')
     
     # Calculate temperature only for the slice
@@ -271,17 +288,19 @@ def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
-    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
-    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
-    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
-    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, Z, 'z')
-    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, Z, 'z')
-    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, Z, 'z')
+    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
+    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
+    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
+    den_vol_ = np.mean(den, axis=(0,2))
+    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
-    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2) 
+    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Z, 'z')
+    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Z, 'z')
+    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, Z, 'z')
+
+    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Z, 'z')
 
     # Calculate temperature only for the slice
@@ -312,17 +331,19 @@ def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx1 = den * vx1
     rhoXvx2 = den * vx2
     rhoXvx3 = den * vx3
-    vx1mw = np.sum(rhoXvx1, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx2mw = np.sum(rhoXvx2, axis=(0,2))/np.sum(den, axis=(0,2))
-    vx3mw = np.sum(rhoXvx3, axis=(0,2))/np.sum(den, axis=(0,2))
-    fluctvx1 = vx1 - vx1mw[np.newaxis,:,np.newaxis]
-    fluctvx2 = vx2 - vx2mw[np.newaxis,:,np.newaxis]
-    fluctvx3 = vx3 - vx3mw[np.newaxis,:,np.newaxis]
-    vx1_turb_slice = analyse_bin.give_slice(fluctvx1, Y, 'y')
-    vx2_turb_slice = analyse_bin.give_slice(fluctvx2, Y, 'y')
-    vx3_turb_slice = analyse_bin.give_slice(fluctvx3, Y, 'y')
+    rhoXvx1_vol = np.mean(rhoXvx1, axis=(0,2))
+    rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
+    rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
+    den_vol_ = np.mean(den, axis=(0,2))
+    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
-    v_turb_rms = np.sqrt(fluctvx1**2 + fluctvx2**2 + fluctvx3**2)  
+    vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Y, 'y')
+    vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Y, 'y')
+    vx3_turb_slice = analyse_bin.give_slice(vx3_turb, Y, 'y')
+
+    v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Y, 'y')
 
     # Calculate temperature only for the slice
