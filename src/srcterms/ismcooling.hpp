@@ -94,18 +94,18 @@ Real ISMCoolFn_lognormal(Real temp) {
 
 // constant lambda function
 KOKKOS_INLINE_FUNCTION
-Real ISMCoolFn_const100less(Real temp) {
+Real ISMCoolFn_400lessconst(Real temp) {
 
     if (temp < 1.05e4 || temp > 0.95e6)
         return 0.0;
 
     const Real norm = static_cast<Real>(7.457876781873938e-24);
-    return norm; // normalization factor calculated by hand
+    return (norm/4.0); // normalization factor calculated by hand
 }
 
 // inverted log-normal lambda function
 KOKKOS_INLINE_FUNCTION
-Real ISMCoolFn(Real temp) {
+Real ISMCoolFn_invcooling(Real temp) {
     const Real mean  = 5.0;
     const Real sigma = 0.25;
 
@@ -119,5 +119,14 @@ Real ISMCoolFn(Real temp) {
     return (norm) * lambda_T; // normalization factor calculated by hand
 }
 
+// hotpeak function
+KOKKOS_INLINE_FUNCTION
+Real ISMCoolFn(Real temp) {
+    const Real norm_hotpeak = 5.4591716620684276e-43;
+
+    if (temp < 1.05e4 || temp > 0.75e6)
+    	return 0.0;
+    return (norm_hotpeak)*(temp*temp*temp*temp);
+}
 
 #endif // SRCTERMS_ISMCOOLING_HPP_
