@@ -34,7 +34,7 @@ COOLING_UNIT = PRESSURE / (TIME * (N_UNIT**2))  # Cooling rate unit
 CHI = 100.0
 GAMMA = 5.0/3.0
 
-from save_2D_arrays_3D import ISMCoolFn
+from save_2D_arrays_3D import ISMCoolFn, CoarseByFactor
 
 def SetGlobals(path_to_files, F):
 
@@ -61,29 +61,7 @@ def SetGlobals(path_to_files, F):
 
     DX = (XMAX - XMIN) / NX
     DY = (YMAX - YMIN) / NY
-    DZ = (ZMAX - ZMIN) / NZ
-
-def CoarseByFactor(array, factor):
-    """
-    Coarse a 3D array by a given factor using vectorized operations.
-    Much faster than nested loops.
-    """
-    if factor <= 1:
-        return array
-
-    # Calculate the new shape
-    new_shape = (array.shape[0] // factor, array.shape[1] // factor, array.shape[2] // factor)
-    
-    # Crop array to be evenly divisible by factor
-    cropped = array[:new_shape[0]*factor, :new_shape[1]*factor, :new_shape[2]*factor]
-    
-    # Reshape to group elements that will be averaged together
-    reshaped = cropped.reshape(new_shape[0], factor, new_shape[1], factor, new_shape[2], factor)
-    
-    del cropped
-    gc.collect()
-    # Take mean along the factor dimensions (axes 1, 3, 5)
-    return np.mean(reshaped, axis=(1, 3, 5))   
+    DZ = (ZMAX - ZMIN) / NZ 
 
 def ReadBinFile(path_to_files, n, F):
 
@@ -118,15 +96,15 @@ def ReadBinFile(path_to_files, n, F):
 
 def ComputeTRML_velocity(den, vx1, vx2, vx3, n, F):
 
-    dens_cold = np.mean(den[:, :NY//3,:])    # cold density
-    #v1_cold = np.mean(vx1[:, :NY//3, :])     # cold velocity-x1
-    v2_cold = np.mean(vx2[:,:NY//3, :])     # cold velocity-x2
-    #v3_cold = np.mean(vx3[:,:NY//3, :])    
+    dens_cold = np.mean(den[:, :NY//8,:])    # cold density
+    #v1_cold = np.mean(vx1[:, :NY//8, :])     # cold velocity-x1
+    v2_cold = np.mean(vx2[:,:NY//8, :])     # cold velocity-x2
+    #v3_cold = np.mean(vx3[:,:NY//8, :])    
 
-    dens_hot = np.mean(den[:,NY*4//5:,:] )    # hot density
-    #v1_hot = np.mean(vx1[:,NY*4//5:,:] )      # hot velocity-x1
-    v2_hot = np.mean(vx2[:,NY*4//5:,:] )      # hot velocity-x2
-    #v3_hot = np.mean(vx3[:,NY*4//5:,:] )      
+    dens_hot = np.mean(den[:,NY*7//8:,:] )    # hot density
+    #v1_hot = np.mean(vx1[:,NY*7//8:,:] )      # hot velocity-x1
+    v2_hot = np.mean(vx2[:,NY*7//8:,:] )      # hot velocity-x2
+    #v3_hot = np.mean(vx3[:,NY*7//8:,:] )      
 
     #v1_TRML_ = (v1_cold + v1_hot) / 2.0  # TRML velocity-x1
     v2_TRML_ = (dens_cold * v2_cold - dens_hot * v2_hot) / (dens_cold - dens_hot)  # TRML velocity-x2
@@ -439,83 +417,6 @@ def MakePDF_snapshots(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, axis, slice)
     plt.xlim(3.5, 6.5)
 
     plt.legend(['Volume weighted', 'Mass weighted', 'Emissivity weighted'], loc='upper right')"""
-             
-def MakeJointPDFs(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, weight):  
-    """
-    Make joint PDF of certain variables.
-    """
-
-    if (weight == 'm'):
-        wt = den.flatten()
-        W = 'M'
-    elif (weight == 'v'):
-        wt = np.ones_like(den).flatten()
-        W = 'V'
-    
-    logTemp_bins = np.linspace(3.5, 6.5, 150)
-
-    """plt.figure(figsize=(16, 9))
-    plt.subplot(2, 2, 1)
-    logDen_bins = np.linspace(math.log10(densmin), math.log10(densmax), 150)
-    hist, xedges, yedges = np.histogram2d(np.log10(den).flatten(), np.log10(temp).flatten(), bins=[logDen_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(math.log10(densmin), math.log10(densmax))
-    plt.colorbar()
-    plt.xlabel(r'$log_{10}(\rho)$')
-    plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.subplot(2, 2, 2)
-    vx1_bins = np.linspace(vx1min - 10, vx1max + 10, 150)
-    hist, xedges, yedges = np.histogram2d(vx1.flatten(), np.log10(temp).flatten(), bins=[vx1_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(vx1min - 10, vx1max + 10)
-    plt.colorbar()
-    plt.xlabel(r'$v_{x1}$')
-    plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.subplot(2, 2, 3)
-    prs_bins = np.linspace(0, prsmax, 150)
-    hist, xedges, yedges = np.histogram2d(prs.flatten(), np.log10(temp).flatten(), bins=[prs_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(0, prsmax)
-    plt.colorbar()
-    plt.xlabel(r'$P$')
-    plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.subplot(2, 2, 4)
-    vx2_bins = np.linspace(-70, 50, 150)
-    hist, xedges, yedges = np.histogram2d(vx2.flatten(), np.log10(temp).flatten(), bins=[vx2_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(-70, 50)
-    plt.colorbar()
-    plt.xlabel(r'$v_{x2}$')
-    plt.ylabel(r"$log_{10}(T)$")
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
-    plt.tight_layout()
-    plt.savefig(dir + 'KH_jointPDF_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
-    plt.clf()
-    plt.close()"""  
 
 def main():
     if MPI_DEF:

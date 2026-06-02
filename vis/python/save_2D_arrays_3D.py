@@ -192,8 +192,6 @@ def CoarseByFactor(array, factor):
     # Reshape to group elements that will be averaged together
     reshaped = cropped.reshape(new_shape[0], factor, new_shape[1], factor, new_shape[2], factor)
     
-    del cropped
-    gc.collect()
     # Take mean along the factor dimensions (axes 1, 3, 5)
     return np.mean(reshaped, axis=(1, 3, 5))   
 

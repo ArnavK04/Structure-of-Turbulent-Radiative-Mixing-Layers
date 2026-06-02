@@ -164,15 +164,15 @@ def compute_flux_profiles(den, vx1, vx3, ps, prs, vx2, temp, n, tim, F, v1_TRML,
 
 def ComputeTRML_velocity(den, vx1, vx2, vx3, n, F):
 
-    dens_cold = np.mean(den[:, :NY//3,:])    # cold density
-    #v1_cold = np.mean(vx1[:, :NY//3, :])     # cold velocity-x1
-    v2_cold = np.mean(vx2[:,:NY//3, :])     # cold velocity-x2
-    #v3_cold = np.mean(vx3[:,:NY//3, :])    
+    dens_cold = np.mean(den[:, :NY//8,:])    # cold density
+    #v1_cold = np.mean(vx1[:, :NY//8, :])     # cold velocity-x1
+    v2_cold = np.mean(vx2[:,:NY//8, :])     # cold velocity-x2
+    #v3_cold = np.mean(vx3[:,:NY//8, :])    
 
-    dens_hot = np.mean(den[:,NY*4//5:,:] )    # hot density
-    #v1_hot = np.mean(vx1[:,NY*4//5:,:] )      # hot velocity-x1
-    v2_hot = np.mean(vx2[:,NY*4//5:,:] )      # hot velocity-x2
-    #v3_hot = np.mean(vx3[:,NY*4//5:,:] )      
+    dens_hot = np.mean(den[:,NY*7//8:,:] )    # hot density
+    #v1_hot = np.mean(vx1[:,NY*7//8:,:] )      # hot velocity-x1
+    v2_hot = np.mean(vx2[:,NY*7//8:,:] )      # hot velocity-x2
+    #v3_hot = np.mean(vx3[:,NY*7//8:,:] )      
 
     #v1_TRML_ = (v1_cold + v1_hot) / 2.0  # TRML velocity-x1
     v2_TRML_ = (dens_cold * v2_cold - dens_hot * v2_hot) / (dens_cold - dens_hot)  # TRML velocity-x2

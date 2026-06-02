@@ -37,7 +37,7 @@ GAMMA = 5.0/3.0
 # De- dimensionalising facotrs
 
 global cold_frac, NY_fin, NY_init
-cold_frac = 0.66666667
+cold_frac = 0.33333333
 v_h = 28.18181822
 T_h = 1.0e6
 T_c = 1.0e4
@@ -50,9 +50,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = 128
-NY = 512
-NZ = 128
+NX = int(128*2)
+NY = int(512*2)
+NZ = int(128*2)
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapsinvertedfiducial400less128_512/"
+dir = r"../../../Downloads/Trillium_data/snapshotpeak22k_256_1024_1_3/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -779,8 +779,12 @@ def plot_vturb_profiles():
     plt.plot(v_turb_wholebox2, color='red', linestyle=':')
     plt.plot(v_turb_mw_whole_box3, color='blue', label=r"$u_{turb, y}$", linestyle='-.')
     plt.plot(v_turb_wholebox3, color='red', linestyle='-.')
+    plt.plot(v_turb_volw_whole_box, color='black', linestyle='-')
+    plt.plot(v_turb_volw_whole_box1, color='black', linestyle='--')
+    plt.plot(v_turb_volw_whole_box2, color='black', linestyle=':')
+    plt.plot(v_turb_volw_whole_box3, color='black', linestyle='-.')
     plt.yscale('log')
-    plt.ylim(bottom=1e-3)
+    plt.ylim(bottom=5e-3)
     plt.legend(loc='best', fontsize=12, frameon=False)
     plt.grid(which='both', axis='both', linestyle='--', linewidth=0.5, color='gray')
 
