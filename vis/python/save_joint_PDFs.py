@@ -58,6 +58,8 @@ def ReadBinFile_temp(path_to_files, n, F):
     gc.collect()
 
     temp = TEMPERATURE * prs/den
+
+    emis = den * den * np.vectorize(ISMCoolFn, otypes = 'd')(temp) / COOLING_UNIT
     
     # Don't pre-calculate temperature here - calculate it when needed
     times = file_data['time']
@@ -69,84 +71,51 @@ def ReadBinFile_temp(path_to_files, n, F):
     del file_data
     gc.collect()
     
-    return temp_volavg, temp, times
+    return emis, den, temp_volavg, temp, times
 
-def MakeJointPDFs(den, vx1, vx3, ps, prs, vx2, temp, tim, n, F, weight):  
+def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):  
     """
-    Make joint PDF of certain variables.
+    Make joint PDF of  T vs <T>.
     """
 
-    if (weight == 'm'):
-        wt = den.flatten()
-        W = 'M'
-    elif (weight == 'v'):
-        wt = np.ones_like(den).flatten()
-        W = 'V'
+    wt = np.ones_like(temp).flatten()
+    W = 'V'
     
     logTemp_bins = np.linspace(3.5, 6.5, 150)
 
-    """plt.figure(figsize=(16, 9))
-    plt.subplot(2, 2, 1)
-    logDen_bins = np.linspace(math.log10(densmin), math.log10(densmax), 150)
-    hist, xedges, yedges = np.histogram2d(np.log10(den).flatten(), np.log10(temp).flatten(), bins=[logDen_bins, logTemp_bins], weights=wt, density=True)
+    plt.figure(figsize=(16, 9))
+    plt.subplot(1, 2, 1)
+
+    hist, xedges, yedges = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
+    hist += 1e-10
     plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
     plt.ylim(3.5, 6.5)
-    plt.xlim(math.log10(densmin), math.log10(densmax))
+    plt.xlim(3.5, 6.5)
     plt.colorbar()
-    plt.xlabel(r'$log_{10}(\rho)$')
+    plt.xlabel(r'$log_{10}(\langle T \rangle_t)$')
     plt.ylabel(r'$log_{10}(T)$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
-    plt.subplot(2, 2, 2)
-    vx1_bins = np.linspace(vx1min - 10, vx1max + 10, 150)
-    hist, xedges, yedges = np.histogram2d(vx1.flatten(), np.log10(temp).flatten(), bins=[vx1_bins, logTemp_bins], weights=wt, density=True)
+    plt.subplot(1, 2, 2)
+    hist, xedges, yedges = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
+    hist += 1e-10
     plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
     plt.ylim(3.5, 6.5)
-    plt.xlim(vx1min - 10, vx1max + 10)
+    plt.xlim(3.5, 6.5)
     plt.colorbar()
-    plt.xlabel(r'$v_{x1}$')
+    plt.xlabel(r'$log_{10}(\langle T \rangle)$')
     plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.subplot(2, 2, 3)
-    prs_bins = np.linspace(0, prsmax, 150)
-    hist, xedges, yedges = np.histogram2d(prs.flatten(), np.log10(temp).flatten(), bins=[prs_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(0, prsmax)
-    plt.colorbar()
-    plt.xlabel(r'$P$')
-    plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)
-
-    plt.subplot(2, 2, 4)
-    vx2_bins = np.linspace(-70, 50, 150)
-    hist, xedges, yedges = np.histogram2d(vx2.flatten(), np.log10(temp).flatten(), bins=[vx2_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-6
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
-    plt.ylim(3.5, 6.5)
-    plt.xlim(-70, 50)
-    plt.colorbar()
-    plt.xlabel(r'$v_{x2}$')
-    plt.ylabel(r"$log_{10}(T)$")
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
-    plt.savefig(dir + 'KH_jointPDF_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
+    plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
     plt.clf()
-    plt.close()"""  
+    plt.close()
 
 def main():
     comm = MPI.COMM_WORLD
@@ -189,12 +158,18 @@ def main():
     with np.load(path_to_files + f"KH_1D_arrays_time_averaged{n1}to{n2}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av'] 
 
-    
- 
+    temp_vol_avg_timeavg3D = np.broadcast_to(
+    temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
+    (NX, NY, NZ))
+
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
-        temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
-        
+        emis, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
+        temp_spaceavg3D = np.broadcast_to(
+        temp_avgspace[np.newaxis, :, np.newaxis],
+        (NX, NY, NZ))
+        MakeJointPDFs(temp_spaceavg3D, temp_vol_avg_timeavg3D, temp, t, i, F, weight='V')
+
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -202,8 +177,12 @@ def main():
     if rank < nproc_extra: # Process extra files across ranks
         n = size * nfiles_local + rank + n1
         print(f"Processing extra snapshot {n}")
-        temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
-            
+        emis, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
+        temp_spaceavg3D = np.broadcast_to(
+        temp_avgspace[np.newaxis, :, np.newaxis],
+        (NX, NY, NZ))
+        MakeJointPDFs(temp_spaceavg3D, temp_vol_avg_timeavg3D, temp, t, n, F, weight='V')
+
         # Clean up memory
         del temp
         gc.collect()
