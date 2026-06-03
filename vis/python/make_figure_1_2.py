@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/snapshotpeak22k_256_1024_1_3/"
+dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/snapshotpeak22k_256_1024_1_3_/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -115,7 +115,7 @@ def plot_profiles():
     def T_tanh_model(z, x0, z0, Th, Tc):
         return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
     popt, pcov = curve_fit(T_tanh_model, Y, temp_vol71to250, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
-    print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
+    print(f'AFitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
     z0 = popt[1]
     x0 = popt[0]
     Y -= x0

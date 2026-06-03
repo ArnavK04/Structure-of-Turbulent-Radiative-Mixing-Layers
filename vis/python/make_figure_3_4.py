@@ -15,7 +15,7 @@ n3 = n2 + (n4 - n1 +1)//3
 #dir = r"../../../Downloads/Astro_zenith_data/new/snapsfidcool2D/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial64cool/"
 #dir = r"../../../Downloads/Aryabhatta_data/snapshalfres4xbox/"
-dir = r"../../../Downloads/Trillium_data/snapshotpeak22k_256_1024_1_3/"
+dir = r"../../../Downloads/Trillium_data/snapsfidcool22k_256_1024_1_3/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
 #dir = r"../../../Downloads/Niagara3Dfidnpz/"
 filename = dir + f"KH_PDFs_time_averaged{n1}to{n4}with{jump}.npz"
@@ -59,8 +59,6 @@ T_inflection = (1.1e4 + 0.9e6)/2
 NY_init = int(max(NY*(cold_frac - 0.35), 0))
 NY_fin = int(min(NY*(cold_frac + 0.35), NY-1))
 
-tanh_modelflag = False
-
 # both slice functions same as make_avg_arrays.py
 def slice_to_half(arr):
     global NY_init, NY_fin
@@ -70,28 +68,41 @@ def slice_to_half_2D(arr):
     global NY_init, NY_fin
     return arr[NY_init:NY_fin,:]
 
-def P_V_fn(Temp, Th, Tc, Tmin, Tmax):
-    Trange = np.linspace(Tmin, Tmax, 1000)
-    P_V_range = 1./( 1 - 4*(Trange - 0.5*(Th+Tc))**2/(Th-Tc)**2 + 1.e-10 ) #avoid division by zero
-    Norm_inv = np.trapz(P_V_range, Trange)
-    P_V = 1./( 1 - 4*(Temp - 0.5*(Th+Tc))**2/(Th-Tc)**2 + 1.e-10 )
-    P_V = np.where(Temp < Tmin, 0.0, P_V)
-    P_V = np.where(Temp > Tmax, 0.0, P_V)
-    P_V /= Norm_inv
+def P_V_fn(zvalues, Temp, z0, modelflag=False):
+    global Th, Tc, Tmin, Tmax
+    if modelflag:
+        Trange = np.logspace(4, 6, 1000)
+        P_V_range = 1./( 1 - 4*(Trange - 0.5*(Th+Tc))**2/(Th-Tc)**2 + 1.e-10 ) #avoid division by zero
+        P_V_range = np.where(Trange < Tmin, 0.0, P_V_range)
+        P_V_range = np.where(Trange > Tmax, 0.0, P_V_range)
+        Norm_inv = np.trapz(P_V_range, Trange)
+        P_V = 1./( 1 - 4*(Temp - 0.5*(Th+Tc))**2/(Th-Tc)**2 + 1.e-10 ) #avoid division by zero
+        P_V = np.where(Temp < Tmin, 0.0, P_V)
+        P_V = np.where(Temp > Tmax, 0.0, P_V)
+        P_V /= Norm_inv
+        print('modelflag is true, using tanh model to calculate P_V')
+    else:
+        T_prime = np.gradient(Temp, zvalues)
+        P_V = 1./np.abs(T_prime + 1e-10)  # avoid division by zero
+        P_V = np.where(Temp < Tmin, 0.0, P_V)
+        P_V = np.where(Temp > Tmax, 0.0, P_V)
+        Norm_inv = np.trapz(P_V, Temp)
+        P_V /= Norm_inv
+        print('modelflag is false, using simulation data to calculate P_V')
     return P_V
 
-from save_2D_arrays_3D import ISMCoolFn
-
-def P_E_fn(Temp, pres, Th, Tc, Tmin, Tmax):
-    P_E = P_V_fn(Temp, Th, Tc, Tmin, Tmax) * np.vectorize(ISMCoolFn)(Temp) / Temp**2
+def P_E_fn(z, Temp, pres, z0, modelflag=False):
+    global Th, Tc, Tmin, Tmax
+    P_E = P_V_fn(z, Temp, z0, modelflag) * np.vectorize(ISMCoolFn)(Temp) / Temp**2
     P_E = np.where(Temp < Tmin, 0.0, P_E)
     P_E = np.where(Temp > Tmax, 0.0, P_E)
     Norm_inv = np.trapz(P_E, Temp)
     P_E /= Norm_inv
     return P_E
 
-def P_M_fn(Temp, Th, Tc, Tmin, Tmax):
-    P_M = P_V_fn(Temp, Th, Tc, Tmin, Tmax) / Temp
+def P_M_fn(z, Temp, z0, modelflag=False):
+    global Th, Tc, Tmin, Tmax
+    P_M = P_V_fn(z, Temp, z0, modelflag) / Temp
     P_M = np.where(Temp < Tmin, 0.0, P_M)
     P_M = np.where(Temp > Tmax, 0.0, P_M)
     Norm_inv = np.trapz(P_M, Temp)
@@ -156,11 +167,12 @@ if __name__ == "__main__":
     def T_tanh_model(z, x0, z0, Th, Tc):
         return ((0.5 * (Th + Tc) + 0.5 * (Th - Tc) * np.tanh((z - x0) / z0)))
     popt, pcov = curve_fit(T_tanh_model, z, temp71to250, p0=p0, bounds=([-np.inf, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf]))
-    print(f'Fitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
+    print(f'AFitted parameters: x0={popt[0]}, z0={popt[1]}, Th={popt[2]}, Tc={popt[3]}')
     z0 = popt[1]
     x0 = popt[0]
     z -= x0
 
+    global Th, Tc, Tmin, Tmax
     Th = 1e6
     Tc = 1e4
     Tmin = 1.1e4
@@ -171,15 +183,12 @@ if __name__ == "__main__":
     mu = 0.62
     mp = 1.6605e-24  # mass of proton in g
 
-    #T = T_tanh(z, z0, Th, Tc)
-    if tanh_modelflag:
-        T = T_tanh(z, z0, Th, Tc)
-        name = "tanh_model"
-    else:
-        T = temp71to250
-        name = "simulation_data"
+    T_tanhyper = T_tanh(z, z0, Th, Tc)
+    T = temp71to250             
+    name = "simulation_data"
 
-    P_V = P_V_fn(T, Th, Tc, Tmin, Tmax)  # Volume PDF
+    P_V = P_V_fn(z, T, z0, modelflag=False)  # Volume PDF
+    P_V_tanhyper = P_V_fn(z, T_tanhyper, z0, modelflag=True)  # Volume PDF for tanh model
 
     temp, hist_vol_av, hist_mass_av, hist_emis_av, hist_vol_sig, hist_mass_sig, hist_emis_sig = load_sim_PDFs(filename)
 
@@ -191,12 +200,17 @@ if __name__ == "__main__":
     P_E_const = np.where(T > Tmax, 0.0, P_E_const)
     P_E_const_log10T = P_E_const * T / np.log10(np.exp(1.))
     P_V_log10T = P_V * T / np.log10(np.exp(1.))
-    P_E_log10T = P_E_fn(T, pressure71to250, Th, Tc, Tmin, Tmax) * T / np.log10(np.exp(1.))
-    P_M_log10T = P_M_fn(T, Th, Tc, Tmin, Tmax) * T / np.log10(np.exp(1.))
+    P_V_tanhyper_log10T = P_V_tanhyper * T_tanhyper / np.log10(np.exp(1.))
+    P_E_log10T = P_E_fn(z, T, pressure71to250, z0, modelflag=False) * T / np.log10(np.exp(1.))
+    P_E_log10T_tanhyper = P_E_fn(z, T_tanhyper, pressure71to250, z0, modelflag=True) * T_tanhyper / np.log10(np.exp(1.))
+    P_M_log10T = P_M_fn(z, T, z0, modelflag=False) * T / np.log10(np.exp(1.))
+    P_M_log10T_tanhyper = P_M_fn(z, T_tanhyper, z0, modelflag=True) * T_tanhyper / np.log10(np.exp(1.))
 
     print(f'{np.trapz(P_E_log10T, np.log10(T))} - from theory -P_e')
+    print(f'{np.trapz(P_E_log10T_tanhyper, np.log10(T_tanhyper))} - from tanh model -P_e')
     print(f'{np.trapz(hist_emis_av, np.log10(temp))} - from simulation -P_e')
     print(f'{np.trapz(P_M_log10T, np.log10(T))} - from theory -P_m')
+    print(f'{np.trapz(P_M_log10T_tanhyper, np.log10(T_tanhyper))} - from tanh model -P_m')
     print(f'{np.trapz(hist_mass_av, np.log10(temp))} - from simulation -P_m')
 
     # MAKING FIGURE 3
@@ -225,14 +239,14 @@ if __name__ == "__main__":
         print(f'{np.trapz(P_E__T_log10T, np.log10(temp71to250__))} - from theory -P_e new log')
 
         plt.figure(figsize=(8, 6))
-        z__ = z__[3*NY//8:7*NY//8]
-        z__ -= x0
-        z__ = z__ / (delU * time_0)
 
         plt.figure(figsize=(7, 5))
-        plt.plot(np.log10(T), P_V_log10T,color = 'orange', linestyle='--')
-        plt.plot(np.log10(T), P_M_log10T,color = 'blue', linestyle='--')
-        plt.plot(np.log10(T), P_E_log10T, color = 'green', linestyle='--')
+        plt.plot(np.log10(T), P_V_log10T,color = 'orange', linestyle=':')
+        plt.plot(np.log10(T_tanhyper), P_V_tanhyper_log10T,color = 'orange', linestyle='--')
+        plt.plot(np.log10(T), P_M_log10T,color = 'blue', linestyle=':')
+        plt.plot(np.log10(T_tanhyper), P_M_log10T_tanhyper,color = 'blue', linestyle='--')
+        plt.plot(np.log10(T), P_E_log10T, color = 'green', linestyle=':')
+        plt.plot(np.log10(T_tanhyper), P_E_log10T_tanhyper, color = 'green', linestyle='--')
         plt.plot(np.log10(T), P_E_const_log10T, color = 'red', label=r'$\mathcal{P}_E = const$', linestyle='--')
         plt.plot(np.log10(temp_range), P_E__T71to250_log10T, color = 'purple', linestyle='-', label=r'$\overline{\mathcal{P}}_E$')
         plt.fill_between(np.log10(temp_range), (P_E__T71to250_log10T - P_E__T71to250_log10T_sig), (P_E__T71to250_log10T + P_E__T71to250_log10T_sig), color='purple', alpha=0.3)
@@ -381,14 +395,9 @@ if __name__ == "__main__":
         from scipy.signal import savgol_filter
 
         z4 -= x0
-        if tanh_modelflag:
-            T4 = T_tanh(z4, z0, Th, Tc)
-            T_prime4 = T_prime_tanh(z4, z0, Th, Tc)
-            name = "tanh_model"
-        else:
-            T4 = temp71to2504
-            T_prime4 = np.gradient(temp71to2504, z4)
-            name = "simulation_data"
+        T4 = temp71to2504
+        T_prime4 = np.gradient(temp71to2504, z4)
+        name = "simulation_data"
 
 
 

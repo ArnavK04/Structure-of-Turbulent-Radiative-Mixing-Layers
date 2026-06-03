@@ -184,6 +184,20 @@ def main():
         # Clean up memory
         del temp
         gc.collect()
+
+    comm.Barrier()  # Wait for all ranks to finish writing images
+
+    if rank == 0:
+        import subprocess
+        subprocess.run([
+            'ffmpeg', '-y',
+            '-framerate', '10',
+            '-i', path_to_files + 'KH_jointPDFtemp_snapshot_%05dC' + str(F) + '.png',
+            '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p',
+            path_to_files + f'KH_jointPDFtemp_movie_C{F}.mp4'
+        ], check=True)
+        print("Movie saved.")
       
 if __name__ == "__main__":
     main()
