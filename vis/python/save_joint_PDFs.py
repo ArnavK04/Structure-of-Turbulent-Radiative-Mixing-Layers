@@ -58,8 +58,6 @@ def ReadBinFile_temp(path_to_files, n, F):
     gc.collect()
 
     temp = TEMPERATURE * prs/den
-
-    emis = den * den * np.vectorize(ISMCoolFn, otypes = 'd')(temp) / COOLING_UNIT
     
     # Don't pre-calculate temperature here - calculate it when needed
     times = file_data['time']
@@ -71,7 +69,7 @@ def ReadBinFile_temp(path_to_files, n, F):
     del file_data
     gc.collect()
     
-    return emis, den, temp_volavg, temp, times
+    return den, temp_volavg, temp, times
 
 def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):  
     """
@@ -164,7 +162,7 @@ def main():
 
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
-        emis, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
+        den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
@@ -177,7 +175,7 @@ def main():
     if rank < nproc_extra: # Process extra files across ranks
         n = size * nfiles_local + rank + n1
         print(f"Processing extra snapshot {n}")
-        emis, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
+        den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
