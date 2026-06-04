@@ -82,17 +82,17 @@ def get_contour_levels(hist, fractions=[0.50, 0.68, 0.95]):
         idx = np.searchsorted(cumsum, f)
         idx = min(idx, len(hist_sorted) - 1)
         levels.append(hist_sorted[idx])
-    return sorted(levels)
+    return sorted(set(np.round(levels, 6)))
 
 def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):  
     """
     Make joint PDF of  T vs <T>.
     """
-
+    binsizefact = NY/1024.
     wt = np.ones_like(temp).flatten()
     W = 'V'
     
-    logTemp_bins = np.linspace(math.log10(1.05e4), math.log10(0.95e6), 65)
+    logTemp_bins = np.linspace(math.log10(1.05e4), math.log10(0.95e6),int(binsizefact*50))
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -100,16 +100,19 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-11
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
     levels = get_contour_levels(hist)
-    plt.contour(bin_centers_x, bin_centers_y, hist.T, 
-            levels=levels, 
-            colors=['white', 'cyan', 'lime'],
-            linewidths=1.5)
+    print(f"Snapshot {n}: levels = {levels}, unique = {len(set(levels))}")
+    hist += 1e-11
+    im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+
+    if len(levels) >= 2:
+        plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+                levels=levels, 
+                colors=['white', 'cyan', 'lime'],
+                linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
-    plt.colorbar()
+    plt.colorbar(im)
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$')
     plt.ylabel(r'$log_{10}(T)$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
@@ -128,16 +131,18 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-11
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
     levels = get_contour_levels(hist)
-    plt.contour(bin_centers_x, bin_centers_y, hist.T, 
-            levels=levels, 
-            colors=['white', 'cyan', 'lime'],
-            linewidths=1.5)
+    hist += 1e-11
+    im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+
+    if len(levels) >= 2:
+        plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+                levels=levels, 
+                colors=['white', 'cyan', 'lime'],
+                linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
-    plt.colorbar()
+    plt.colorbar(im)
     plt.xlabel(r'$log_{10}(\langle T \rangle)$')
     plt.ylabel(r'$log_{10}(T)$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
