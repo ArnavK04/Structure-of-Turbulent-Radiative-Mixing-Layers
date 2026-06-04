@@ -71,6 +71,19 @@ def ReadBinFile_temp(path_to_files, n, F):
     
     return den, temp_volavg, temp, times
 
+def get_contour_levels(hist, fractions=[0.50, 0.68, 0.95]):
+
+    hist_flat = hist.flatten()
+    hist_sorted = np.sort(hist_flat)  # ascending instead of descending
+    cumsum = np.cumsum(hist_sorted)
+    cumsum /= cumsum[-1]
+    levels = []
+    for f in fractions:
+        idx = np.searchsorted(cumsum, f)
+        idx = min(idx, len(hist_sorted) - 1)
+        levels.append(hist_sorted[idx])
+    return sorted(levels)
+
 def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):  
     """
     Make joint PDF of  T vs <T>.
@@ -79,16 +92,21 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     wt = np.ones_like(temp).flatten()
     W = 'V'
     
-    logTemp_bins = np.linspace(3.5, 6.5, 150)
+    logTemp_bins = np.linspace(math.log10(1.05e4), math.log10(0.95e6), 65)
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
-
+    plt.gca().set_facecolor('black')
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-10
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
+    hist += 1e-11
+    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+    levels = get_contour_levels(hist)
+    plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+            levels=levels, 
+            colors=['white', 'cyan', 'lime'],
+            linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
     plt.colorbar()
@@ -96,12 +114,27 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     plt.ylabel(r'$log_{10}(T)$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
+    # optional legend
+    from matplotlib.lines import Line2D
+    legend_elements = [
+        Line2D([0], [0], color='lime',  label=r'$2\sigma$ (95%)'),
+        Line2D([0], [0], color='cyan',  label=r'$1\sigma$ (68%)'),
+        Line2D([0], [0], color='white', label='median (50%)'),
+    ]
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=8)
+
     plt.subplot(1, 2, 2)
+    plt.gca().set_facecolor('black')
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    hist += 1e-10
-    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log')
+    hist += 1e-11
+    plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+    levels = get_contour_levels(hist)
+    plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+            levels=levels, 
+            colors=['white', 'cyan', 'lime'],
+            linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
     plt.colorbar()
