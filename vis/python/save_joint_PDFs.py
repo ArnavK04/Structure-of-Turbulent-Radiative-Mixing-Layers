@@ -100,7 +100,7 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    levels = get_contour_levels(hist)
+    levels = [1e-4,1e-3,1e-2,1e-1,1.0,1e1]
     print(f"Snapshot {n}: levels = {levels}, unique = {len(set(levels))}")
     hist += 1e-11
     im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
@@ -108,7 +108,7 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     if len(levels) >= 2:
         plt.contour(bin_centers_x, bin_centers_y, hist.T, 
                 levels=levels, 
-                colors=['white', 'cyan', 'lime'],
+                colors=['white', 'cyan', 'lime', 'yellow', 'magenta', 'black'],
                 linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
@@ -119,11 +119,20 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
 
     # optional legend
     from matplotlib.lines import Line2D
-    legend_elements = [
+    """legend_elements = [
         Line2D([0], [0], color='lime',  label=r'$2\sigma$ (95%)'),
         Line2D([0], [0], color='cyan',  label=r'$1\sigma$ (68%)'),
         Line2D([0], [0], color='white', label='median (50%)'),
+    ]"""
+    legend_elements = [
+        Line2D([0], [0], color='white',  label=r'$P_V= 10^{-4}$'),
+        Line2D([0], [0], color='cyan',  label=r'$P_V= 10^{-3}$'),
+        Line2D([0], [0], color='lime', label=r'$P_V= 10^{-2}$'),
+        Line2D([0], [0], color='yellow', label=r'$P_V= 10^{-1}$'),
+        Line2D([0], [0], color='magenta', label=r'$P_V= 1.0$'),
+        Line2D([0], [0], color='black', label=r'$P_V= 10^{1}$')
     ]
+
     plt.legend(handles=legend_elements, loc='upper left', fontsize=8)
 
     plt.subplot(1, 2, 2)
@@ -131,14 +140,14 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     hist, xedges, yedges = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
-    levels = get_contour_levels(hist)
+    levels = [1e-4,1e-3,1e-2,1e-1,1.0,1e1]
     hist += 1e-11
     im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
 
     if len(levels) >= 2:
         plt.contour(bin_centers_x, bin_centers_y, hist.T, 
                 levels=levels, 
-                colors=['white', 'cyan', 'lime'],
+                colors=['white', 'cyan', 'lime', 'yellow', 'magenta', 'black'],
                 linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
