@@ -97,16 +97,16 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
     plt.gca().set_facecolor('black')
-    hist, xedges, yedges = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
+    hist_Ttimespace, xedges_Ttimespace, yedges_Ttimespace = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
+    bin_centers_x = 0.5*(xedges_Ttimespace[1:] + xedges_Ttimespace[:-1])
+    bin_centers_y = 0.5*(yedges_Ttimespace[1:] + yedges_Ttimespace[:-1])
     levels = [1e-4,1e-3,1e-2,1e-1,1.0,1e1]
     print(f"Snapshot {n}: levels = {levels}, unique = {len(set(levels))}")
-    hist += 1e-11
-    im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+    hist_Ttimespace += 1e-11
+    im = plt.imshow(hist_Ttimespace.T, extent=[xedges_Ttimespace[0], xedges_Ttimespace[-1], yedges_Ttimespace[0], yedges_Ttimespace[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
 
     if len(levels) >= 2:
-        plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+        plt.contour(bin_centers_x, bin_centers_y, hist_Ttimespace.T, 
                 levels=levels, 
                 colors=['yellow', 'cyan', 'lime', 'white', 'black', 'deepskyblue'],
                 linewidths=1.5)
@@ -137,15 +137,15 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
 
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
-    hist, xedges, yedges = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
-    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
+    hist_Tspace, xedges_Tspace, yedges_Tspace = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
+    bin_centers_x = 0.5*(xedges_Tspace[1:] + xedges_Tspace[:-1])
+    bin_centers_y = 0.5*(yedges_Tspace[1:] + yedges_Tspace[:-1])
     levels = [1e-4,1e-3,1e-2,1e-1,1.0,1e1]
-    hist += 1e-11
-    im = plt.imshow(hist.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+    hist_Tspace += 1e-11
+    im = plt.imshow(hist_Tspace.T, extent=[xedges_Tspace[0], xedges_Tspace[-1], yedges_Tspace[0], yedges_Tspace[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
 
     if len(levels) >= 2:
-        plt.contour(bin_centers_x, bin_centers_y, hist.T, 
+        plt.contour(bin_centers_x, bin_centers_y, hist_Tspace.T, 
                 levels=levels, 
                 colors=['yellow', 'cyan', 'lime', 'white', 'black', 'deepskyblue'],
                 linewidths=1.5)
@@ -161,6 +161,11 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
     plt.clf()
     plt.close()
+
+    # save a snapshot of marginal pdf from the joint pdf
+    marginal_pdf_T = np.sum(hist_Tspace, axis=1)
+
+    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace= hist_Ttimespace, hist_Tspace=hist_Tspace, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = ['yellow', 'cyan', 'lime', 'white', 'black', 'deepskyblue'], vmin=1e-5, vmax=1e2)
 
 def main():
     comm = MPI.COMM_WORLD

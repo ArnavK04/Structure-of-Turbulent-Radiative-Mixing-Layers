@@ -71,7 +71,6 @@ def SetGlobals(path_to_files, F):
             for value in header:
                 f.write(f"{value}\n")
 
-
 def ISMCoolFn_stock(temp):
 
     norm22k = 3.5350949795856343/21.866519671987078
@@ -246,9 +245,9 @@ def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
     rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
     den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1_turb = vx1 - (rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = vx2 - (rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = vx3 - (rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
     vx1_turb_slice = analyse_bin.give_slice(vx1_turb, X, 'x')
     vx2_turb_slice = analyse_bin.give_slice(vx2_turb, X, 'x')
@@ -290,9 +289,9 @@ def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
     rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
     den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1_turb = vx1 - (rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = vx2 - (rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = vx3 - (rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
     vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Z, 'z')
     vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Z, 'z')
@@ -333,9 +332,9 @@ def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     rhoXvx2_vol = np.mean(rhoXvx2, axis=(0,2))
     rhoXvx3_vol = np.mean(rhoXvx3, axis=(0,2))
     den_vol_ = np.mean(den, axis=(0,2))
-    vx1_turb = (rhoXvx1 - rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx2_turb = (rhoXvx2 - rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
-    vx3_turb = (rhoXvx3 - rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx1_turb = vx1 - (rhoXvx1_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx2_turb = vx2 - (rhoXvx2_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
+    vx3_turb = vx3 - (rhoXvx3_vol[np.newaxis,:,np.newaxis]) / den_vol_[np.newaxis,:,np.newaxis]
 
     vx1_turb_slice = analyse_bin.give_slice(vx1_turb, Y, 'y')
     vx2_turb_slice = analyse_bin.give_slice(vx2_turb, Y, 'y')

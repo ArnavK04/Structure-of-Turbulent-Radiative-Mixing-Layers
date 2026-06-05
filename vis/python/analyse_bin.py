@@ -46,7 +46,7 @@ def make_3D_array(file_data, property):
     where Nx1, Nx2, Nx3 are the total number of cells in the root grid.
     - (0,0,0) of the array is at (zmin,ymin,xmin) of the root grid."""
 
-    # Get the number of mesh blocks and their dimensions. This function only works for 2D bin files.
+    # Get the number of mesh blocks and their dimensions. This function works for 3D bin files.
     nmb = file_data['n_mbs']    # Number of mesh blocks
     nx1 = file_data['nx1_mb']   # Number of cells in the x1 direction (horizontal) per meshblock
     nx2 = file_data['nx2_mb']   # Number of cells in the x2 direction (vertical).
@@ -55,11 +55,11 @@ def make_3D_array(file_data, property):
     max_level = max(file_data['mb_logical'][i][3] for i in range(nmb))  # Get the maximum level of refinement in the mesh blocks
 
     property_arr = file_data['mb_data'][property]   # 4D array containing the property data for each mesh block
-    # Initialize an empty array to hold the 2D data
+    # Initialize an empty array to hold the 3D data
     Arr = np.zeros(( file_data['Nx3']*(2**max_level), file_data['Nx2']*(2**max_level), file_data['Nx1']*(2**max_level)), dtype=property_arr[0].dtype)    # Nx2, Nx1 are total number of cells in root grid.
 
     for mb in range(nmb):
-        mb_logical_indices = file_data['mb_logical'][mb]    # Logical indices of the mesh block in the 2D grid 
+        mb_logical_indices = file_data['mb_logical'][mb]    # Logical indices of the mesh block in the 3D grid 
         refinement_level = mb_logical_indices[3]            # Refinement level of the mesh block
         factor = 2**(max_level - refinement_level)          # Factor to scale the mesh block size to the total grid size
 
@@ -70,7 +70,7 @@ def make_3D_array(file_data, property):
         block = property_arr[mb]
         refined_block = np.repeat(np.repeat(np.repeat(block, factor, axis=0), factor, axis=1), factor, axis=2)   # Refine the block by repeating its values
 
-        Arr[ K:K + nx3*factor, J:J + nx2*factor, I:I + nx1*factor] = refined_block   # Place the refined block in the correct position in the 2D array
+        Arr[ K:K + nx3*factor, J:J + nx2*factor, I:I + nx1*factor] = refined_block   # Place the refined block in the correct position in the 3D array
     return Arr
 
 def plot_figure(file_data, property):
