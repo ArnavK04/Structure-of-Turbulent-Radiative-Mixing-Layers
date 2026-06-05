@@ -108,7 +108,7 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     if len(levels) >= 2:
         plt.contour(bin_centers_x, bin_centers_y, hist.T, 
                 levels=levels, 
-                colors=['white', 'cyan', 'lime', 'yellow', 'magenta', 'black'],
+                colors=['yellow', 'cyan', 'lime', 'white', 'black', 'deepskyblue'],
                 linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
@@ -125,12 +125,12 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
         Line2D([0], [0], color='white', label='median (50%)'),
     ]"""
     legend_elements = [
-        Line2D([0], [0], color='white',  label=r'$P_V= 10^{-4}$'),
+        Line2D([0], [0], color='yellow',  label=r'$P_V= 10^{-4}$'),
         Line2D([0], [0], color='cyan',  label=r'$P_V= 10^{-3}$'),
         Line2D([0], [0], color='lime', label=r'$P_V= 10^{-2}$'),
-        Line2D([0], [0], color='yellow', label=r'$P_V= 10^{-1}$'),
-        Line2D([0], [0], color='magenta', label=r'$P_V= 1.0$'),
-        Line2D([0], [0], color='black', label=r'$P_V= 10^{1}$')
+        Line2D([0], [0], color='white', label=r'$P_V= 10^{-1}$'),
+        Line2D([0], [0], color='black', label=r'$P_V= 1.0$'),
+        Line2D([0], [0], color='deepskyblue', label=r'$P_V= 10^{1}$')
     ]
 
     plt.legend(handles=legend_elements, loc='upper left', fontsize=8)
@@ -147,7 +147,7 @@ def MakeJointPDFs(tempavgspace, tempavgspacetime, temp, tim, n, F, weight):
     if len(levels) >= 2:
         plt.contour(bin_centers_x, bin_centers_y, hist.T, 
                 levels=levels, 
-                colors=['white', 'cyan', 'lime', 'yellow', 'magenta', 'black'],
+                colors=['yellow', 'cyan', 'lime', 'white', 'black', 'deepskyblue'],
                 linewidths=1.5)
     plt.ylim(3.5, 6.5)
     plt.xlim(3.5, 6.5)
