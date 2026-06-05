@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/snapshotpeak22k_256_1024_1_3_/"
+dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/snapsinvnorm22k_256_1024_1_3_/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
