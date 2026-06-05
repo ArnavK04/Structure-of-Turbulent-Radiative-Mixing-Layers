@@ -133,7 +133,7 @@ def ISMCoolFn_400lessinv(temp):
     norm = 5.253246378625558e-28
     return (norm22k * norm/4.0) * lambda_T
 
-def ISMCoolFn(temp):
+def ISMCoolFn_normlog(temp):
 
     norm22k = 4.841586997370533/21.866519671987078
 
@@ -176,7 +176,7 @@ def ISMCoolFn_const(temp):
 
 def CoarseByFactor(array, factor):
     """
-    Coarse a 3D array by a given factor using vectorized operations.
+    Coarsens a 3D array by a given factor using vectorized operations.
     Much faster than nested loops.
     """
     if factor <= 1:
@@ -228,9 +228,8 @@ def ReadBinFile(path_to_files, n, F):
 
 def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):  
     """
-    Create 2D snapshots in X direction with memory optimization.
+    Create 2D snapshots in X direction.
     """
-    # Create slices - these are views, not copies, so memory efficient
     den_slice = analyse_bin.give_slice(den, X, 'x')
     vx1_slice = analyse_bin.give_slice(vx1, X, 'x')
     vx3_slice = analyse_bin.give_slice(vx3, X, 'x')
@@ -256,10 +255,9 @@ def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, X, 'x')
     
-    # Calculate temperature only for the slice
     temp_slice = TEMPERATURE * prs_slice / den_slice
     
-    # Save each array with meta data
+    # Saving each array
     np.savez_compressed(dir + 'KH_2D_X_' + str(X) + '_' + str(n).zfill(5) + f"_C{F}.npz",
                          den=den_slice, vx1=vx1_slice, vx3=vx3_slice,
                          ps=ps_slice, prs=prs_slice, vx2=vx2_slice,
@@ -272,9 +270,8 @@ def Make2D_snapshotsX(den, vx1, vx3, ps, prs, vx2, tim, n, F):
 
 def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     """
-    Create 2D snapshots in Z direction with memory optimization.
+    Create 2D snapshots in Z direction.
     """
-    # Create slices - these are views, not copies, so memory efficient
     den_slice = analyse_bin.give_slice(den, Z, 'z')
     vx1_slice = analyse_bin.give_slice(vx1, Z, 'z')
     vx3_slice = analyse_bin.give_slice(vx3, Z, 'z')
@@ -300,7 +297,7 @@ def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Z, 'z')
 
-    # Calculate temperature only for the slice
+
     temp_slice = TEMPERATURE * prs_slice / den_slice
 
     np.savez_compressed(dir + 'KH_2D_Z_' + str(Z) + '_' + str(n).zfill(5) + f"_C{F}.npz",
@@ -309,15 +306,14 @@ def Make2D_snapshotsZ(den, vx1, vx3, ps, prs, vx2, tim, n, F):
                          vx1_turb=vx1_turb_slice, vx2_turb=vx2_turb_slice, vx3_turb=vx3_turb_slice,
                          temp=temp_slice, v_turb_rms=v_turb_rms_slice, extent=[XMIN, XMAX, YMIN, YMAX], ind=Z, time=tim, number=n, Factor=F)
 
-    # Clean up slices
     del den_slice, vx1_slice, vx3_slice, ps_slice, prs_slice, vx2_slice, temp_slice
     gc.collect()
 
 def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     """
-    Create 2D snapshots in Y direction with memory optimization.
+    Create 2D snapshots in Y direction.
     """
-    # Create slices - these are views, not copies, so memory efficient
+
     den_slice = analyse_bin.give_slice(den, Y, 'y')
     vx1_slice = analyse_bin.give_slice(vx1, Y, 'y')
     vx3_slice = analyse_bin.give_slice(vx3, Y, 'y')
@@ -343,7 +339,6 @@ def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
     v_turb_rms = np.sqrt(vx1_turb**2 + vx2_turb**2 + vx3_turb**2) 
     v_turb_rms_slice = analyse_bin.give_slice(v_turb_rms, Y, 'y')
 
-    # Calculate temperature only for the slice
     temp_slice = TEMPERATURE * prs_slice / den_slice
 
     np.savez_compressed(dir + 'KH_2D_Y_' + str(Y) + '_' + str(n).zfill(5) + f"_C{F}.npz",
@@ -353,7 +348,6 @@ def Make2D_snapshotsY(den, vx1, vx3, ps, prs, vx2, tim, n, F):
                          temp=temp_slice, v_turb_rms=v_turb_rms_slice, extent=[ZMIN, ZMAX, XMIN, XMAX],
                          ind=Y, time=tim, number=n, Factor=F)
 
-    # Clean up slices
     del den_slice, vx1_slice, vx3_slice, ps_slice, prs_slice, vx2_slice, temp_slice
     gc.collect()
 
@@ -377,7 +371,7 @@ def main():
         # Only rank 0 parses args
         if rank == 0:
             args = parse_args()
-            arg_dict = vars(args)  # convert Namespace to dict
+            arg_dict = vars(args) 
         else:
             arg_dict = None
 
@@ -405,17 +399,17 @@ def main():
         
     global densmin, densmax, vx1min, vx1max, prsmin, prsmax, vx2min, vx2max, tempmin, tempmax, vx3min, vx3max
     
-    # Get initial data for setting min/max values - use smaller subset to save memory
+    # Getting initial data for setting min/max values
     dir1_ = path_to_files
     fname_ = dir1_ + 'KH.hydro_w.' + str(0).zfill(5) + '.bin'
     file_data_ = bin_convert.read_binary(fname_)    
 
-    # Sample data for determining ranges - use coarsened version to save memory
+    # Sample data for determining ranges
     den_sample = CoarseByFactor(analyse_bin.make_3D_array(file_data_, 'dens'), F)
     vx1_sample = CoarseByFactor(analyse_bin.make_3D_array(file_data_, 'velx'), F)
     eint_sample = analyse_bin.make_3D_array(file_data_, 'eint')
     prs_sample = CoarseByFactor((2./3.) * eint_sample, F)
-    del eint_sample  # Free immediately
+    del eint_sample
     temp_sample = prs_sample * TEMPERATURE / den_sample
 
     # Set global min/max values for consistent scaling
@@ -432,23 +426,18 @@ def main():
     vx3min = -50
     vx3max = 50
 
-    # Clean up sample data
     del den_sample, vx1_sample, prs_sample, temp_sample, file_data_
     gc.collect()
  
-    # Main processing loop - memory optimized
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
 
-        # Load data once per iteration
         dens, velx, velz, ps, prs, vely, t = ReadBinFile(path_to_files, i, F)
-        
-        # Process each view without copying - pass the original arrays
+
         Make2D_snapshotsX(dens, velx, velz, ps, prs, vely, t, i, F)
         Make2D_snapshotsZ(dens, velx, velz, ps, prs, vely, t, i, F)
         Make2D_snapshotsY(dens, velx, velz, ps, prs, vely, t, i, F)
-        
-        # Explicitly delete arrays and collect garbage after each iteration
+
         del dens, velx, velz, ps, prs, vely
         gc.collect()
 
@@ -461,8 +450,7 @@ def main():
             Make2D_snapshotsX(dens, velx, velz, ps, prs, vely, t, n, F)
             Make2D_snapshotsZ(dens, velx, velz, ps, prs, vely, t, n, F)
             Make2D_snapshotsY(dens, velx, velz, ps, prs, vely, t, n, F)
-            
-            # Clean up
+
             del dens, velx, velz, ps, prs, vely
             gc.collect()
       
