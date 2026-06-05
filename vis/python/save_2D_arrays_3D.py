@@ -118,7 +118,7 @@ def ISMCoolFn_stock(temp):
     logcool = (lhd[ipps+1]*dx - lhd[ipps]*(dx - 0.04))*25.0
     return norm22k * pow(10.0,logcool)
 
-def ISMCoolFn_400invless(temp):
+def ISMCoolFn_400lessinv(temp):
 
     norm22k = 1.0
 
@@ -134,7 +134,7 @@ def ISMCoolFn_400invless(temp):
     norm = 5.253246378625558e-28
     return (norm22k * norm/4.0) * lambda_T
 
-def ISMCoolFn_normlog(temp):
+def ISMCoolFn(temp):
 
     norm22k = 4.841586997370533/21.866519671987078
 
@@ -150,7 +150,7 @@ def ISMCoolFn_normlog(temp):
     norm = 5.4591716620684276e-21
     return norm22k * norm * lambda_T
 
-def ISMCoolFn_hotpeakcutoff75(temp):
+def ISMCoolFn_hotpeak(temp):
    
     norm22k = 13.226398492299235/21.866519671987078
 
@@ -163,7 +163,7 @@ def ISMCoolFn_hotpeakcutoff75(temp):
 def ISMCoolFn_nonradiative(temp):
     return 0.0
 
-def ISMCoolFn_const400less(temp):
+def ISMCoolFn_const(temp):
 
     norm22k = 239.77557073519606/21.866519671987078
 
