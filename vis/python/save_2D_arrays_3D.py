@@ -197,13 +197,12 @@ def CoarseByFactor(array, factor):
 def ReadBinFile(path_to_files, n, F):
     """
     Read binary file and return coarsened data.
-    Memory optimized to avoid storing intermediate full-resolution arrays.
     """
     dir = path_to_files
     fname = dir + 'KH.hydro_w.' + str(n).zfill(5) + '.bin'
     file_data = bin_convert.read_binary(fname)    
 
-    # Read and coarsen data one array at a time to minimize memory usage
+    # Read and coarsen data arrays
     den = CoarseByFactor(analyse_bin.make_3D_array(file_data, 'dens'), F)
     vx1 = CoarseByFactor(analyse_bin.make_3D_array(file_data, 'velx'), F)
     vx3 = CoarseByFactor(analyse_bin.make_3D_array(file_data, 'velz'), F)
@@ -212,15 +211,13 @@ def ReadBinFile(path_to_files, n, F):
     # Calculate pressure directly from energy
     eint_array = analyse_bin.make_3D_array(file_data, 'eint')
     prs = CoarseByFactor((2./3.) * eint_array, F)
-    del eint_array  # Free memory immediately
+    del eint_array
     gc.collect()
     
     vx2 = CoarseByFactor(analyse_bin.make_3D_array(file_data, 'vely'), F)
-    
-    # Don't pre-calculate temperature here - calculate it when needed
+
     times = file_data['time']
-    
-    # Clear file_data from memory
+
     del file_data
     gc.collect()
     
