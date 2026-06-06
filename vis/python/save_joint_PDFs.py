@@ -91,6 +91,8 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     """
     Make joint PDF of  T vs <T>.
     """
+    global binsizefact
+
     binsizefact = NY/1024.
     wt = np.ones_like(temp).flatten()
     W = 'V'
@@ -112,7 +114,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
         hist_vol = data['hist_vol']
         bin_centers = data['bin_centers']
         T = 10**bin_centers
-        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
+        #hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
         hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
     def interp(arr):
@@ -129,11 +131,12 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.subplot(1, 2, 1)
     plt.gca().set_facecolor('black')
     hist_Ttimespace, xedges_Ttimespace, yedges_Ttimespace = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
+    hist_Ttimespace_unnormalized, _, _ = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=False)
     bin_centers_x = 0.5*(xedges_Ttimespace[1:] + xedges_Ttimespace[:-1])
     bin_centers_y = 0.5*(yedges_Ttimespace[1:] + yedges_Ttimespace[:-1])
-    levels = [1e-4,1e-3,1e-2,1e-1,1.0]
+    levels = np.logspace(-4, 1, 11)
     # list color themes from matplotlib
-    arr = [1, 2, 3, 4, 5]
+    arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
     cmap = cm.viridis
     norm = mcolors.Normalize(vmin=min(arr), vmax=max(arr))
@@ -156,41 +159,41 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.ylabel(r'$log_{10}(T)$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
-    # optional legend
-
-    """legend_elements = [
-        Line2D([0], [0], color='lime',  label=r'$2\sigma$ (95%)'),
-        Line2D([0], [0], color='cyan',  label=r'$1\sigma$ (68%)'),
-        Line2D([0], [0], color='white', label='median (50%)'),
-    ]"""
-
     legend_elements = [
         Line2D([0], [0], color=colors[0],  label=r'$P_V= 10^{-4}$'),
-        Line2D([0], [0], color=colors[1],  label=r'$P_V= 10^{-3}$'),
-        Line2D([0], [0], color=colors[2], label=r'$P_V= 10^{-2}$'),
-        Line2D([0], [0], color=colors[3], label=r'$P_V= 10^{-1}$'),
-        Line2D([0], [0], color=colors[4], label=r'$P_V= 1.0$'),
+        Line2D([0], [0], color=colors[1],  label=r'$P_V= 2 \times 10^{-4}$'),
+        Line2D([0], [0], color=colors[2], label=r'$P_V= 10^{-3}$'),
+        Line2D([0], [0], color=colors[3], label=r'$P_V= 2 \times 10^{-3}$'),
+        Line2D([0], [0], color=colors[4], label=r'$P_V= 10^{-2}$'),
+        Line2D([0], [0], color=colors[5], label=r'$P_V= 2 \times 10^{-2}$'),
+        Line2D([0], [0], color=colors[6], label=r'$P_V= 10^{-1}$'),
+        Line2D([0], [0], color=colors[7], label=r'$P_V= 2 \times 10^{-1}$'),
+        Line2D([0], [0], color=colors[8], label=r'$P_V= 1$'),
+        Line2D([0], [0], color=colors[9], label=r'$P_V= 2$'),
+        Line2D([0], [0], color=colors[10], label=r'$P_V= 10^{1}$'),
     ]
 
     plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
 
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_Ttimespace * np.diff(yedges_Ttimespace)[np.newaxis, :], axis=1)
-    P_x = np.where((bin_centers_x >= 1.05e4) & (bin_centers_x <= 0.95e6), P_x, 0)
+    T_x = 10**bin_centers_x
+    #P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
     P_x /= np.sum(P_x * np.diff(xedges_Ttimespace))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_Ttimespace * np.diff(xedges_Ttimespace)[:, np.newaxis], axis=0)
-    P_y = np.where((bin_centers_y >= 1.05e4) & (bin_centers_y <= 0.95e6), P_y, 0)
+    T_y = 10**bin_centers_y
+    #P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     # pdf for <T> from simulation
-    bins_temptimespace = np.linspace(3.5, 6.5, 101)
-    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime), bins=bins_temptimespace, weights=wt, density=True)
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*90))
+    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
-    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
-    hist_tempvolav /= np.trapz(hist_tempvolav, bin_centerstemptimespace)
+    #hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav /= np.trapezoid(hist_tempvolav, bin_centerstemptimespace)
 
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
@@ -203,10 +206,9 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.ylabel(r'$P_V$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
     plt.legend(loc='upper left', fontsize=12)
-    plt.ylim(1e-5, 1e2)
+    plt.ylim(1e-3, 1e2)
 
-    hist_Tspace, xedges_Tspace, yedges_Tspace = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
-    hist_Tspace += 1e-11
+    hist_Tspace_unnormalized, xedges_Tspace, yedges_Tspace = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=False)
 
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
@@ -214,7 +216,126 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.clf()
     plt.close()
 
-    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace= hist_Ttimespace + 1e-11, hist_Tspace=hist_Tspace + 1e-11, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
+    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace_unnormalized= hist_Ttimespace_unnormalized, hist_Tspace_unnormalized=hist_Tspace_unnormalized, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
+
+def make_steady_joint_PDFs(ni, nf, F):
+    """
+    Sum the un normalized joint histograms for the snapshots from n1 to n2 with interval jump, 
+    and then normalize the summed histogram to get the steady joint PDF.
+    """
+    global dir, binsizefact, n1, n2, jump
+    hist_sum = None
+
+    wt = np.ones((NX, NY, NZ)).flatten()
+    with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n2}with{jump}.npz", 'r') as f:
+        temp_vol_avg_timeavg = f['temp_vol_av'] 
+    tempavgspacetime = np.broadcast_to(
+    temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
+    (NX, NY, NZ))
+
+    # get actual pdf
+    axis = 'none'
+    slice = 1
+    fname = dir + 'KH_tempPDF_snapshot_' + str(n).zfill(5) + f'C{F}_axis{axis}_slice{slice}.npz'
+    with np.load(fname, 'r') as data:
+        hist_vol = data['hist_vol']
+        bin_centers = data['bin_centers']
+        T = 10**bin_centers
+        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
+        hist_vol /= np.trapezoid(hist_vol, bin_centers)
+
+    for n in range(ni, nf+1, jump):
+        print(f"Processing snapshot {n} for steady joint PDF...")
+        fname = dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz'
+        with np.load(fname, 'r') as data:
+            hist_vol_ = data['hist_Ttimespace_unnormalized']
+        if hist_sum is None:
+            hist_sum = hist_vol_
+        else:
+            hist_sum += hist_vol_
+
+    with np.load(dir + 'KH_jointPDFtemp_snapshot_' + str(ni).zfill(5) + f'C{F}' + '.npz', 'r') as data:
+        xedges = data['xedges']
+        yedges = data['yedges']
+        levels = data['levels']
+        colors = data['colors']
+
+    hist_sum /= np.sum(hist_sum * np.diff(xedges)[:, np.newaxis] * np.diff(yedges)[np.newaxis, :])
+    hist_sum += 1e-11
+
+    plt.figure(figsize=(16, 9))
+    plt.subplot(1, 2, 1)
+    plt.gca().set_facecolor('black')
+
+    im = plt.imshow(hist_sum.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+
+    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
+    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
+    plt.contour(bin_centers_x, bin_centers_y, hist_sum.T, 
+            levels=levels, 
+            colors=colors,
+            linewidths=1.5)
+    plt.ylim(3.5, 6.5)
+    plt.xlim(3.5, 6.5)
+    plt.colorbar(im)
+    plt.xlabel(r'$log_{10}(\langle T \rangle_t)$')
+    plt.ylabel(r'$log_{10}(T)$')
+    plt.grid(True, which="both", ls="--", alpha=0.7)
+
+    legend_elements = [
+        Line2D([0], [0], color=colors[0],  label=r'$P_V= 10^{-4}$'),
+        Line2D([0], [0], color=colors[1],  label=r'$P_V= 2 \times 10^{-4}$'),
+        Line2D([0], [0], color=colors[2], label=r'$P_V= 10^{-3}$'),
+        Line2D([0], [0], color=colors[3], label=r'$P_V= 2 \times 10^{-3}$'),
+        Line2D([0], [0], color=colors[4], label=r'$P_V= 10^{-2}$'),
+        Line2D([0], [0], color=colors[5], label=r'$P_V= 2 \times 10^{-2}$'),
+        Line2D([0], [0], color=colors[6], label=r'$P_V= 10^{-1}$'),
+        Line2D([0], [0], color=colors[7], label=r'$P_V= 2 \times 10^{-1}$'),
+        Line2D([0], [0], color=colors[8], label=r'$P_V= 1$'),
+        Line2D([0], [0], color=colors[9], label=r'$P_V= 2$'),
+        Line2D([0], [0], color=colors[10], label=r'$P_V= 10^{1}$'),
+    ]
+
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
+
+    # marginalized over y (sum along axis=1) → P(log10(<T>_t))
+    P_x = np.sum(hist_sum * np.diff(yedges)[np.newaxis, :], axis=1)
+    T_x = 10**bin_centers_x
+    P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
+    P_x /= np.sum(P_x * np.diff(xedges))  # Normalize P_x
+
+    # marginalized over x (sum along axis=0) → P(log10(T))  
+    P_y = np.sum(hist_sum * np.diff(xedges)[:, np.newaxis], axis=0)
+    T_y = 10**bin_centers_y
+    P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
+    P_y /= np.sum(P_y * np.diff(yedges))  # Normalize P_y
+
+    # pdf for <T> from simulation
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*90))
+    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
+    bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
+    T_avg = 10**bin_centerstemptimespace
+    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav /= np.trapezoid(hist_tempvolav, bin_centerstemptimespace)
+
+    plt.subplot(1, 2, 2)
+    plt.gca().set_facecolor('black')
+    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
+    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
+    plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
+    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
+    plt.yscale('log')
+    plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
+    plt.ylabel(r'$P_V$')
+    plt.grid(True, which="both", ls="--", alpha=0.7)
+    plt.legend(loc='upper left', fontsize=12)
+    plt.ylim(1e-3, 1e2)
+
+    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
+    plt.tight_layout()
+    plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.png')
+    plt.clf()
+    plt.close()
 
 def main():
     comm = MPI.COMM_WORLD
@@ -293,6 +414,8 @@ def main():
             path_to_files + f'KH_jointPDFtemp_movie_C{F}.mp4'
         ], check=True)
         print("Movie saved.")
+        if n1 == 0 and n2 == 125 and jump == 1:
+            make_steady_joint_PDFs(n1, n2, F)
       
 if __name__ == "__main__":
     main()
