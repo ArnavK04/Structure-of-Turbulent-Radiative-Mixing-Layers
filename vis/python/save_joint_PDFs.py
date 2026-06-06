@@ -111,6 +111,9 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     with np.load(fname, 'r') as data:
         hist_vol = data['hist_vol']
         bin_centers = data['bin_centers']
+        T = 10**bin_centers
+        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
+        hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
     def interp(arr):
         return interp1d(Y_lims_transformed, temp_vol_avg_timeavg, kind="linear", fill_value="extrapolate")(Y_lims)
@@ -121,7 +124,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
     
-    logTemp_bins = np.linspace(math.log10(1.05e4), math.log10(0.95e6),int(binsizefact*45))
+    logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -174,10 +177,12 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
 
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_Ttimespace * np.diff(yedges_Ttimespace)[np.newaxis, :], axis=1)
+    P_x = np.where((bin_centers_x >= 1.05e4) & (bin_centers_x <= 0.95e6), P_x, 0)
     P_x /= np.sum(P_x * np.diff(xedges_Ttimespace))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_Ttimespace * np.diff(xedges_Ttimespace)[:, np.newaxis], axis=0)
+    P_y = np.where((bin_centers_y >= 1.05e4) & (bin_centers_y <= 0.95e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     plt.subplot(1, 2, 2)
