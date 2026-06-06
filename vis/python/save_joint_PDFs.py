@@ -180,27 +180,8 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.grid(True, which="both", ls="--", alpha=0.7)
     plt.legend(loc='upper left', fontsize=8)
 
-    """plt.subplot(1, 2, 2)
-    plt.gca().set_facecolor('black')
     hist_Tspace, xedges_Tspace, yedges_Tspace = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
-    bin_centers_x = 0.5*(xedges_Tspace[1:] + xedges_Tspace[:-1])
-    bin_centers_y = 0.5*(yedges_Tspace[1:] + yedges_Tspace[:-1])
-    levels = [1e-4,1e-3,1e-2,1e-1,1.0]
     hist_Tspace += 1e-11
-    
-    im = plt.imshow(hist_Tspace.T, extent=[xedges_Tspace[0], xedges_Tspace[-1], yedges_Tspace[0], yedges_Tspace[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
-
-    if len(levels) >= 2:
-        plt.contour(bin_centers_x, bin_centers_y, hist_Tspace.T, 
-                levels=levels, 
-                colors=colors,
-                linewidths=1.5)
-    plt.ylim(3.5, 6.5)
-    plt.xlim(3.5, 6.5)
-    plt.colorbar(im)
-    plt.xlabel(r'$log_{10}(\langle T \rangle)$')
-    plt.ylabel(r'$log_{10}(T)$')
-    plt.grid(True, which="both", ls="--", alpha=0.7)"""
 
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
@@ -208,10 +189,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.clf()
     plt.close()
 
-    # save a snapshot of marginal pdf from the joint pdf
-    marginal_pdf_T = np.sum(hist_Ttimespace, axis=1)
-
-    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace= hist_Ttimespace, hist_Tspace=hist_Tspace, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = colors, vmin=1e-5, vmax=1e2)
+    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace= hist_Ttimespace + 1e-11, hist_Tspace=hist_Tspace + 1e-11, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
 
 def main():
     comm = MPI.COMM_WORLD
