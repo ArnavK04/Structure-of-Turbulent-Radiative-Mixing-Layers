@@ -8,6 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 # Global constants
 MPI_DEF = True
+JOINT_PDF_FLAG = True
 if MPI_DEF:
     from mpi4py import MPI
 
@@ -1309,6 +1310,9 @@ def plot_sliced_PDFs(axis, number):
         plt.savefig(dir + f"KH_tempPDF_slice_{axis}_{n}.png", bbox_inches='tight')
         plt.clf()
         plt.close()
+
+def plot_jointpdf_stats(i):
+    return
 
 if __name__ == "__main__":
 
