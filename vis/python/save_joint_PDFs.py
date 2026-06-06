@@ -93,7 +93,6 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     """
     global binsizefact
 
-    binsizefact = NY/1024.
     wt = np.ones_like(temp).flatten()
     W = 'V'
 
@@ -227,7 +226,7 @@ def make_steady_joint_PDFs(ni, nf, F):
     hist_sum = None
 
     wt = np.ones((NX, NY, NZ)).flatten()
-    with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n2}with{jump}.npz", 'r') as f:
+    with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av'] 
     tempavgspacetime = np.broadcast_to(
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
@@ -236,13 +235,12 @@ def make_steady_joint_PDFs(ni, nf, F):
     # get actual pdf
     axis = 'none'
     slice = 1
-    fname = dir + 'KH_tempPDF_snapshot_' + str(n).zfill(5) + f'C{F}_axis{axis}_slice{slice}.npz'
-    with np.load(fname, 'r') as data:
-        hist_vol = data['hist_vol']
-        bin_centers = data['bin_centers']
+    filename = dir + f"KH_PDFs_time_averaged{ni}to{nf}with{jump}.npz"
+    with np.load(filename, 'r') as f:
+        hist_vol_av = f['hist_vol_av']
+        hist_vol_sig = f['hist_vol_sig']
+        bin_centers = f['bin_centers']
         T = 10**bin_centers
-        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
-        hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
     for n in range(ni, nf+1, jump):
         print(f"Processing snapshot {n} for steady joint PDF...")
@@ -259,6 +257,7 @@ def make_steady_joint_PDFs(ni, nf, F):
         yedges = data['yedges']
         levels = data['levels']
         colors = data['colors']
+        colors = [tuple(color) for color in colors]
 
     hist_sum /= np.sum(hist_sum * np.diff(xedges)[:, np.newaxis] * np.diff(yedges)[np.newaxis, :])
     hist_sum += 1e-11
@@ -322,7 +321,8 @@ def make_steady_joint_PDFs(ni, nf, F):
     plt.gca().set_facecolor('black')
     plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
     plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
-    plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
+    plt.plot(bin_centers, hist_vol_av, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
+    plt.fill_between(bin_centers, hist_vol_av - hist_vol_sig, hist_vol_av + hist_vol_sig, color='yellow', alpha=0.3)
     plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
@@ -331,7 +331,7 @@ def make_steady_joint_PDFs(ni, nf, F):
     plt.legend(loc='upper left', fontsize=12)
     plt.ylim(1e-3, 1e2)
 
-    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
+    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
     plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.png')
     plt.clf()
@@ -374,7 +374,9 @@ def main():
     N1_local = rank * nfiles_local + n1
     N2_local = (rank + 1) * nfiles_local + n1
         
-    global temp_vol_avg_timeavg
+    global temp_vol_avg_timeavg, binsizefact
+
+    binsizefact = NY/1024.
 
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
@@ -415,7 +417,7 @@ def main():
         ], check=True)
         print("Movie saved.")
         if n1 == 0 and n2 == 125 and jump == 1:
-            make_steady_joint_PDFs(n1, n2, F)
+            make_steady_joint_PDFs(36, n2, F)
       
 if __name__ == "__main__":
     main()
