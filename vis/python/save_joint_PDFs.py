@@ -16,7 +16,7 @@ from scipy.interpolate import interp1d
 
 from save_2D_arrays_3D import ATOMIC_MASS, LENGTH, TIME, MASS, VELOCITY, DENSITY, ENERGY, POWER, PRESSURE, TEMPERATURE, MU, N_UNIT, COOLING_UNIT, CHI, GAMMA
 
-from save_2D_arrays_3D import ISMCoolFn, CoarseByFactor
+from save_2D_arrays_3D import CoarseByFactor
 
 def SetGlobals(path_to_files, F):
 
@@ -104,6 +104,13 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     with np.load(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz', 'r') as f:
         Y_lims = f['Y_lims']
         Y_lims_transformed = Y_lims + v_TRML_integrated
+    # get actual pdf
+    axis = 'none'
+    slice = 1
+    fname = dir + 'KH_tempPDF_snapshot_' + str(n).zfill(5) + f'C{F}_axis{axis}_slice{slice}.npz'
+    with np.load(fname, 'r') as data:
+        hist_vol = data['hist_vol']
+        bin_centers = data['bin_centers']
 
     def interp(arr):
         return interp1d(Y_lims_transformed, temp_vol_avg_timeavg, kind="linear", fill_value="extrapolate")(Y_lims)
@@ -129,6 +136,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     cmap = cm.viridis
     norm = mcolors.Normalize(vmin=min(arr), vmax=max(arr))
     colors = [cmap(norm(val)) for val in arr]
+    colors = colors[::-1]  # reverse the colors so that higher levels are darker
 
     print(f"Snapshot {n}: levels = {levels}, unique = {len(set(levels))}")
     hist_Ttimespace += 1e-11
@@ -162,23 +170,27 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
         Line2D([0], [0], color=colors[4], label=r'$P_V= 1.0$'),
     ]
 
-    plt.legend(handles=legend_elements, loc='upper left', fontsize=8)
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
 
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_Ttimespace * np.diff(yedges_Ttimespace)[np.newaxis, :], axis=1)
+    P_x /= np.sum(P_x * np.diff(xedges_Ttimespace))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_Ttimespace * np.diff(xedges_Ttimespace)[:, np.newaxis], axis=0)
+    P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
-    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$')
-    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$')
+    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
+    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
+    plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
     plt.ylabel(r'$P_V$')
     plt.grid(True, which="both", ls="--", alpha=0.7)
-    plt.legend(loc='upper left', fontsize=8)
+    plt.legend(loc='upper left', fontsize=12)
+    plt.ylim(1e-5, 1e2)
 
     hist_Tspace, xedges_Tspace, yedges_Tspace = np.histogram2d(np.log10(tempavgspace).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=True)
     hist_Tspace += 1e-11
