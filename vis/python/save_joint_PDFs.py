@@ -119,7 +119,6 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
         return interp1d(Y_lims_transformed, temp_vol_avg_timeavg, kind="linear", fill_value="extrapolate")(Y_lims)
     
     temp_vol_avg_timeavg = interp(temp_vol_avg_timeavg)
-
     tempavgspacetime = np.broadcast_to(
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
@@ -185,11 +184,20 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     P_y = np.where((bin_centers_y >= 1.05e4) & (bin_centers_y <= 0.95e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
+    # pdf for <T> from simulation
+    bins_temptimespace = np.linspace(3.5, 6.5, 101)
+    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime), bins=bins_temptimespace, weights=wt, density=True)
+    bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
+    T_avg = 10**bin_centerstemptimespace
+    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav /= np.trapz(hist_tempvolav, bin_centerstemptimespace)
+
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
     plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
     plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
     plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
+    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
     plt.ylabel(r'$P_V$')
