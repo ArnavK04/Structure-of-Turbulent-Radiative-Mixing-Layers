@@ -113,7 +113,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
         hist_vol = data['hist_vol']
         bin_centers = data['bin_centers']
         T = 10**bin_centers
-        #hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
+        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
         hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
     def interp(arr):
@@ -124,7 +124,8 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
     
-    logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
+    logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
+    #logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -133,9 +134,9 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     hist_Ttimespace_unnormalized, _, _ = np.histogram2d(np.log10(tempavgspacetime).flatten(), np.log10(temp).flatten(), bins=[logTemp_bins, logTemp_bins], weights=wt, density=False)
     bin_centers_x = 0.5*(xedges_Ttimespace[1:] + xedges_Ttimespace[:-1])
     bin_centers_y = 0.5*(yedges_Ttimespace[1:] + yedges_Ttimespace[:-1])
-    levels = np.logspace(-4, 1, 11)
+    levels = np.logspace(-4, 1, 8)
     # list color themes from matplotlib
-    arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    arr = [1, 2, 3, 4, 5, 6, 7, 8]
 
     cmap = cm.viridis
     norm = mcolors.Normalize(vmin=min(arr), vmax=max(arr))
@@ -159,17 +160,14 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
     legend_elements = [
-        Line2D([0], [0], color=colors[0],  label=r'$P_V= 10^{-4}$'),
-        Line2D([0], [0], color=colors[1],  label=r'$P_V= 2 \times 10^{-4}$'),
-        Line2D([0], [0], color=colors[2], label=r'$P_V= 10^{-3}$'),
-        Line2D([0], [0], color=colors[3], label=r'$P_V= 2 \times 10^{-3}$'),
-        Line2D([0], [0], color=colors[4], label=r'$P_V= 10^{-2}$'),
-        Line2D([0], [0], color=colors[5], label=r'$P_V= 2 \times 10^{-2}$'),
-        Line2D([0], [0], color=colors[6], label=r'$P_V= 10^{-1}$'),
-        Line2D([0], [0], color=colors[7], label=r'$P_V= 2 \times 10^{-1}$'),
-        Line2D([0], [0], color=colors[8], label=r'$P_V= 1$'),
-        Line2D([0], [0], color=colors[9], label=r'$P_V= 2$'),
-        Line2D([0], [0], color=colors[10], label=r'$P_V= 10^{1}$'),
+        Line2D([0], [0], color=colors[0],  label=f'P = {levels[0]:.2e}'),
+        Line2D([0], [0], color=colors[1],  label=f'P= {levels[1]:.2e}'),
+        Line2D([0], [0], color=colors[2], label=f'P= {levels[2]:.2e}'),
+        Line2D([0], [0], color=colors[3], label=f'P= {levels[3]:.2e}'),
+        Line2D([0], [0], color=colors[4], label=f'P= {levels[4]:.2e}'),
+        Line2D([0], [0], color=colors[5], label=f'P= {levels[5]:.2e}'),
+        Line2D([0], [0], color=colors[6], label=f'P= {levels[6]:.2e}'),
+        Line2D([0], [0], color=colors[7], label=f'P= {levels[7]:.2e}'),
     ]
 
     plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
@@ -177,21 +175,21 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_Ttimespace * np.diff(yedges_Ttimespace)[np.newaxis, :], axis=1)
     T_x = 10**bin_centers_x
-    #P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
+    P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
     P_x /= np.sum(P_x * np.diff(xedges_Ttimespace))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_Ttimespace * np.diff(xedges_Ttimespace)[:, np.newaxis], axis=0)
     T_y = 10**bin_centers_y
-    #P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
+    P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     # pdf for <T> from simulation
-    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*90))
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*70))
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
-    #hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
     hist_tempvolav /= np.trapezoid(hist_tempvolav, bin_centerstemptimespace)
 
     plt.subplot(1, 2, 2)
@@ -282,17 +280,14 @@ def make_steady_joint_PDFs(ni, nf, F):
     plt.grid(True, which="both", ls="--", alpha=0.7)
 
     legend_elements = [
-        Line2D([0], [0], color=colors[0],  label=r'$P_V= 10^{-4}$'),
-        Line2D([0], [0], color=colors[1],  label=r'$P_V= 2 \times 10^{-4}$'),
-        Line2D([0], [0], color=colors[2], label=r'$P_V= 10^{-3}$'),
-        Line2D([0], [0], color=colors[3], label=r'$P_V= 2 \times 10^{-3}$'),
-        Line2D([0], [0], color=colors[4], label=r'$P_V= 10^{-2}$'),
-        Line2D([0], [0], color=colors[5], label=r'$P_V= 2 \times 10^{-2}$'),
-        Line2D([0], [0], color=colors[6], label=r'$P_V= 10^{-1}$'),
-        Line2D([0], [0], color=colors[7], label=r'$P_V= 2 \times 10^{-1}$'),
-        Line2D([0], [0], color=colors[8], label=r'$P_V= 1$'),
-        Line2D([0], [0], color=colors[9], label=r'$P_V= 2$'),
-        Line2D([0], [0], color=colors[10], label=r'$P_V= 10^{1}$'),
+        Line2D([0], [0], color=colors[0],  label=f'P = {levels[0]:.2e}'),
+        Line2D([0], [0], color=colors[1],  label=f'P= {levels[1]:.2e}'),
+        Line2D([0], [0], color=colors[2], label=f'P= {levels[2]:.2e}'),
+        Line2D([0], [0], color=colors[3], label=f'P= {levels[3]:.2e}'),
+        Line2D([0], [0], color=colors[4], label=f'P= {levels[4]:.2e}'),
+        Line2D([0], [0], color=colors[5], label=f'P= {levels[5]:.2e}'),
+        Line2D([0], [0], color=colors[6], label=f'P= {levels[6]:.2e}'),
+        Line2D([0], [0], color=colors[7], label=f'P= {levels[7]:.2e}'),
     ]
 
     plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
@@ -310,7 +305,7 @@ def make_steady_joint_PDFs(ni, nf, F):
     P_y /= np.sum(P_y * np.diff(yedges))  # Normalize P_y
 
     # pdf for <T> from simulation
-    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*90))
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*70))
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
