@@ -100,7 +100,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     global dir, n1, n2, jump
     with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n2}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av'] 
-    with np.load(dir + f"KH_1D_arrays_snapshot{n1}_{n2}_{str(0).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
+    with np.load(dir + f"KH_1D_arrays_snapshot{n1}_{n2}_{str(n).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
         v_TRML_integrated = f['v_TRML_integrated']
     with np.load(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz', 'r') as f:
         Y_lims = f['Y_lims']
@@ -124,8 +124,8 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
     
-    logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
-    #logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
+    #logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
+    logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)

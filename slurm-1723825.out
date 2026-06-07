@@ -1,0 +1,35 @@
+
+scontrol show job 1723825
+JobId=1723825 JobName=debugjob-1-arnavk22
+   UserId=arnavk22(3148217) GroupId=arnavk22(3148217) MCS_label=N/A
+   Priority=11813388 Nice=0 Account=def-babul QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=0 Reboot=0 ExitCode=0:0
+   RunTime=00:54:22 TimeLimit=01:00:00 TimeMin=N/A
+   SubmitTime=2026-06-06T17:49:31 EligibleTime=2026-06-06T17:49:31
+   AccrueTime=Unknown
+   StartTime=2026-06-06T17:49:31 EndTime=2026-06-06T18:43:53 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-06T17:49:31 Scheduler=Main
+   Partition=debug AllocNode:Sid=tri-login02:3389613
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=tri0003
+   BatchHost=tri0003
+   NumNodes=1 NumCPUs=192 NumTasks=192 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=192,mem=767000M,node=1,billing=192
+   AllocTRES=cpu=192,mem=767000M,node=1,billing=192
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=767000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) LicensesAlloc=(null) Network=(null)
+   Command=/bin/sh
+   SubmitLine=SALLOC --comment /opt/slurm/bin/salloc --time=1:0:0 --job-name=debugjob-1-arnavk22 --nodes=1 --ntasks=192 --account=def-babul -p debug --exclusive --time=1:0:0 --job-name=debugjob-1-arnavk22 --nodes=1 --ntasks=192 --account=def-babul -p debug --exclusive
+   WorkDir=/scratch/arnavk22/Structure-of-Turbulent-Radiative-Mixing-Layers
+   Comment=/opt/slurm/bin/salloc --time=1:0:0 --job-name=debugjob-1-arnavk22 --nodes=1 --ntasks=192 --account=def-babul -p debug --exclusive
+
+sacct -j 1723825
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+1723825      debugjob-+  def-babul   00:54:22                         00:00:00   00:00:00      0:0 
+1723825.int+ interacti+  def-babul   00:54:22                         00:00:00   00:00:00      0:0 
+1723825.ext+     extern  def-babul   00:54:22                         00:00:00   00:00:00      0:0 
+
