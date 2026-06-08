@@ -1311,9 +1311,6 @@ def plot_sliced_PDFs(axis, number):
         plt.clf()
         plt.close()
 
-def plot_jointpdf_stats(i):
-    return
-
 if __name__ == "__main__":
 
     global time_0

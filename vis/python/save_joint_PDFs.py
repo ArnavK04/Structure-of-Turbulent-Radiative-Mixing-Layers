@@ -87,7 +87,7 @@ def get_contour_levels(hist, fractions=[0.50, 0.68, 0.95]):
         levels.append(hist_sorted[idx])
     return sorted(set(np.round(levels, 6)))
 
-def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):  
+def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):  
     """
     Make joint PDF of  T vs <T>.
     """
@@ -98,7 +98,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
 
     # correcting the y-lims for the time-averaged temperature profile to account for the integrated TRML shift
     global dir, n1, n2, jump
-    with np.load(dir + f"KH_1D_arrays_time_averaged{n1}to{n2}with{jump}.npz", 'r') as f:
+    with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av'] 
     with np.load(dir + f"KH_1D_arrays_snapshot{n1}_{n2}_{str(n).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
         v_TRML_integrated = f['v_TRML_integrated']
@@ -125,7 +125,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     (NX, NY, NZ))
     
     #logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
-    logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*70))
+    logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*65))
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -185,7 +185,7 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, weight):
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     # pdf for <T> from simulation
-    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*70))
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*65))
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
@@ -379,11 +379,14 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(temp_spaceavg3D, temp, t, i, F, weight='V')
+        MakeJointPDFs(temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
 
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
+
+    ni = 36
+    nf = 125
 
     if rank < nproc_extra: # Process extra files across ranks
         n = size * nfiles_local + rank + n1
@@ -392,7 +395,7 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(temp_spaceavg3D, temp, t, n, F, weight='V')
+        MakeJointPDFs(temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
 
         # Clean up memory
         del temp
@@ -412,7 +415,7 @@ def main():
         ], check=True)
         print("Movie saved.")
         if n1 == 0 and n2 == 125 and jump == 1:
-            make_steady_joint_PDFs(36, n2, F)
+            make_steady_joint_PDFs(ni, nf, F)
       
 if __name__ == "__main__":
     main()
