@@ -159,7 +159,7 @@ def ISMCoolFn_hotpeak(temp):
     norm_hotpeak = 5.4591716620684276e-43
     return norm22k * norm_hotpeak * (temp**4)
 
-def ISMCoolFn_nonradiative(temp):
+def ISMCoolFn(temp):
     return 0.0
 
 def ISMCoolFn_const(temp):

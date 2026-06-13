@@ -45,9 +45,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = int(128)
-NY = int(512)
-NZ = int(128)
+NX = int(128*2)
+NY = int(512*2)
+NZ = int(128*2)
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -59,7 +59,7 @@ global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/normlog22k_128_512_1_3/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fiducialno_cooling/bin/"
 #dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
@@ -1311,6 +1311,9 @@ def plot_sliced_PDFs(axis, number):
         plt.clf()
         plt.close()
 
+def plot_jointpdf_stats(i):
+    return
+
 if __name__ == "__main__":
 
     global time_0
@@ -1324,9 +1327,9 @@ if __name__ == "__main__":
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
     cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
-    time_0 = np.min(cooling_arr)
+    #time_0 = np.min(cooling_arr)
     #time_0 = time_mid
-    #time_0 = 1.0
+    time_0 = 1.0
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 
