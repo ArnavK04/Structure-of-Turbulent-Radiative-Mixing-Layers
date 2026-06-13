@@ -305,7 +305,7 @@ def make_steady_joint_PDFs(ni, nf, F):
     P_y /= np.sum(P_y * np.diff(yedges))  # Normalize P_y
 
     # pdf for <T> from simulation
-    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*70))
+    bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*65))
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
@@ -372,6 +372,8 @@ def main():
     global temp_vol_avg_timeavg, binsizefact
 
     binsizefact = NY/1024.
+    ni = 36
+    nf = 125
 
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
@@ -384,9 +386,6 @@ def main():
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
-
-    ni = 36
-    nf = 125
 
     if rank < nproc_extra: # Process extra files across ranks
         n = size * nfiles_local + rank + n1

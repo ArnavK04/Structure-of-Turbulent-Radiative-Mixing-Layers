@@ -64,7 +64,7 @@ global dir
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../../Downloads/Aryabhatta_data/snaps2xlessvel/"
 #dir = r"../../../Downloads/Niagara_data/snaps5xlessdens/"
-dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/snapsinvnorm22k_256_1024_1_3_/"
+#dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/snapsinvnorm22k_256_1024_1_3_/"
 #dir = r"../../../Downloads/Astro_zenith_data/snapsfidcool2D/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snaps2xmorevel/"
@@ -795,7 +795,8 @@ if __name__ == "__main__":
     global time_0, n1, n2, n3, n4, jump, time_mid
     
     T_0 = 1e5
-    time_mid = 3. * (T_0/TEMPERATURE)**2 / (2*P_0 * np.vectorize(ISMCoolFn)(T_0)/COOLING_UNIT)
+    time_mid = 3. * (T_0/TEMPERATURE)**2 / (2*P_0 * ISMCoolFn(T_0)/COOLING_UNIT)
+    print(f"T_code is {TEMPERATURE}, P_0 = {P_0}, COOLING_UNIT = {COOLING_UNIT}, ISMCoolFn(T_0) = {ISMCoolFn(T_0)}")
     print(f"Cooling time at T_0 = {T_0} K is {time_mid} code units")
 
     temp_arr = np.logspace(4, 6, 1000)
