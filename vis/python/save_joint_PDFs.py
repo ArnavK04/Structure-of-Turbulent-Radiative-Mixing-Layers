@@ -16,7 +16,7 @@ from scipy.interpolate import interp1d
 
 from save_2D_arrays_3D import ATOMIC_MASS, LENGTH, TIME, MASS, VELOCITY, DENSITY, ENERGY, POWER, PRESSURE, TEMPERATURE, MU, N_UNIT, COOLING_UNIT, CHI, GAMMA
 
-from save_2D_arrays_3D import CoarseByFactor
+from save_2D_arrays_3D import CoarseByFactor, ISMCoolFn
 
 def SetGlobals(path_to_files, F):
 
@@ -74,32 +74,26 @@ def ReadBinFile_temp(path_to_files, n, F):
     
     return den, temp_volavg, temp, times
 
-def get_contour_levels(hist, fractions=[0.50, 0.68, 0.95]):
-
-    hist_flat = hist.flatten()
-    hist_sorted = np.sort(hist_flat)  # ascending instead of descending
-    cumsum = np.cumsum(hist_sorted)
-    cumsum /= cumsum[-1]
-    levels = []
-    for f in fractions:
-        idx = np.searchsorted(cumsum, f)
-        idx = min(idx, len(hist_sorted) - 1)
-        levels.append(hist_sorted[idx])
-    return sorted(set(np.round(levels, 6)))
-
-def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):  
+def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):  
     """
     Make joint PDF of  T vs <T>.
     """
     global binsizefact
 
-    wt = np.ones_like(temp).flatten()
-    W = 'V'
+    if weight == 'V':
+        wt = np.ones_like(temp).flatten()
+        W = 'V'
+    elif weight == 'M':
+        wt = den.flatten()    # isobaric conditions
+        W = 'M'
+    elif weight == 'E':
+        wt = (den*den*np.vectorize(ISMCoolFn, otypes = 'd')(temp)/COOLING_UNIT).flatten()  # Emissivity weighting
+        W = 'E'
 
     # correcting the y-lims for the time-averaged temperature profile to account for the integrated TRML shift
     global dir, n1, n2, jump
     with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
-        temp_vol_avg_timeavg = f['temp_vol_av'] 
+        temp_vol_avg_timeavg = f['temp_vol_av']
     with np.load(dir + f"KH_1D_arrays_snapshot{n1}_{n2}_{str(n).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
         v_TRML_integrated = f['v_TRML_integrated']
     with np.load(dir + 'KH_1D_arrays_snapshot_' + str(n).zfill(5) + f'C{F}.npz', 'r') as f:
@@ -110,20 +104,27 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):
     slice = 1
     fname = dir + 'KH_tempPDF_snapshot_' + str(n).zfill(5) + f'C{F}_axis{axis}_slice{slice}.npz'
     with np.load(fname, 'r') as data:
-        hist_vol = data['hist_vol']
+        if weight == 'V':
+            hist_vol = data['hist_vol']
+        elif weight == 'M':
+            hist_vol = data['hist_mass']
+        elif weight == 'E':
+            hist_vol = data['hist_emissivity']
+            
         bin_centers = data['bin_centers']
         T = 10**bin_centers
         hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
         hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
+
     def interp(arr):
-        return interp1d(Y_lims_transformed, temp_vol_avg_timeavg, kind="linear", fill_value="extrapolate")(Y_lims)
+        return interp1d(Y_lims_transformed, arr, kind="linear", fill_value="extrapolate")(Y_lims)
     
     temp_vol_avg_timeavg = interp(temp_vol_avg_timeavg)
     tempavgspacetime = np.broadcast_to(
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
-    
+
     #logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
     logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*65))
 
@@ -185,8 +186,15 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     # pdf for <T> from simulation
+    if weight == 'V':
+        wt_timeavg = np.ones_like(tempavgspacetime).flatten()
+    elif weight == 'M':
+        wt_timeavg = 1/(tempavgspacetime.flatten())
+    elif weight == 'E':
+        wt_timeavg = (np.vectorize(ISMCoolFn, otypes = 'd')(tempavgspacetime)/(tempavgspacetime*tempavgspacetime*COOLING_UNIT)).flatten()
+
     bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*65))
-    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
+    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt_timeavg, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
     hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
@@ -194,13 +202,13 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):
 
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
-    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
-    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
-    plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
-    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
+    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P(log_{10}(\langle T \rangle_t))$ from joint PDF')
+    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P(log_{10}(T))$ from joint PDF')
+    plt.plot(bin_centers, hist_vol, color='yellow', label=r'$P(log_{10}(T))$ from simulation') 
+    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P(log_{10}(\langle T \rangle_t))$ from simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
-    plt.ylabel(r'$P_V$')
+    plt.ylabel(f'{W}-weighted PDF')
     plt.grid(True, which="both", ls="--", alpha=0.7)
     plt.legend(loc='upper left', fontsize=12)
     plt.ylim(1e-3, 1e2)
@@ -209,13 +217,13 @@ def MakeJointPDFs(tempavgspace, temp, tim, n, F, ni, nf, weight):
 
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
-    plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
+    plt.savefig(dir + f'KH_jointPDFtemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
     plt.clf()
     plt.close()
 
-    np.savez_compressed(dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace_unnormalized= hist_Ttimespace_unnormalized, hist_Tspace_unnormalized=hist_Tspace_unnormalized, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
+    np.savez_compressed(dir + f'KH_jointPDFtemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace_unnormalized= hist_Ttimespace_unnormalized, hist_Tspace_unnormalized=hist_Tspace_unnormalized, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
 
-def make_steady_joint_PDFs(ni, nf, F):
+def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     """
     Sum the un normalized joint histograms for the snapshots from n1 to n2 with interval jump, 
     and then normalize the summed histogram to get the steady joint PDF.
@@ -223,7 +231,6 @@ def make_steady_joint_PDFs(ni, nf, F):
     global dir, binsizefact, n1, n2, jump
     hist_sum = None
 
-    wt = np.ones((NX, NY, NZ)).flatten()
     with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av'] 
     tempavgspacetime = np.broadcast_to(
@@ -235,14 +242,25 @@ def make_steady_joint_PDFs(ni, nf, F):
     slice = 1
     filename = dir + f"KH_PDFs_time_averaged{ni}to{nf}with{jump}.npz"
     with np.load(filename, 'r') as f:
-        hist_vol_av = f['hist_vol_av']
-        hist_vol_sig = f['hist_vol_sig']
+        if weight == 'V':
+            hist_vol_av = f['hist_vol_av']
+            hist_vol_sig = f['hist_vol_sig']
+            W = 'V'
+        elif weight == 'M':
+            hist_vol_av = f['hist_mass_av']
+            hist_vol_sig = f['hist_mass_sig']
+            W = 'M'
+        elif weight == 'E':
+            hist_vol_av = f['hist_emis_av']
+            hist_vol_sig = f['hist_emis_sig']
+            W = 'E'
+
         bin_centers = f['bin_centers']
         T = 10**bin_centers
 
     for n in range(ni, nf+1, jump):
         print(f"Processing snapshot {n} for steady joint PDF...")
-        fname = dir + 'KH_jointPDFtemp_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz'
+        fname = dir + f'KH_jointPDFtemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz'
         with np.load(fname, 'r') as data:
             hist_vol_ = data['hist_Ttimespace_unnormalized']
         if hist_sum is None:
@@ -250,7 +268,7 @@ def make_steady_joint_PDFs(ni, nf, F):
         else:
             hist_sum += hist_vol_
 
-    with np.load(dir + 'KH_jointPDFtemp_snapshot_' + str(ni).zfill(5) + f'C{F}' + '.npz', 'r') as data:
+    with np.load(dir + f'KH_jointPDFtemp{W}_snapshot_' + str(ni).zfill(5) + f'C{F}' + '.npz', 'r') as data:
         xedges = data['xedges']
         yedges = data['yedges']
         levels = data['levels']
@@ -305,8 +323,15 @@ def make_steady_joint_PDFs(ni, nf, F):
     P_y /= np.sum(P_y * np.diff(yedges))  # Normalize P_y
 
     # pdf for <T> from simulation
+    if weight == 'V':
+        wt_timeavg = np.ones_like(tempavgspacetime).flatten()
+    elif weight == 'M':
+        wt_timeavg = 1/(tempavgspacetime.flatten())
+    elif weight == 'E':
+        wt_timeavg = (np.vectorize(ISMCoolFn, otypes = 'd')(tempavgspacetime)/(tempavgspacetime*tempavgspacetime*COOLING_UNIT)).flatten()
+
     bins_temptimespace = np.linspace(3.5, 6.5, int(binsizefact*65))
-    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt, density=True)
+    hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt_timeavg, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
     hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
@@ -321,14 +346,14 @@ def make_steady_joint_PDFs(ni, nf, F):
     plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
-    plt.ylabel(r'$P_V$')
+    plt.ylabel(f'{W}-weighted PDF')
     plt.grid(True, which="both", ls="--", alpha=0.7)
     plt.legend(loc='upper left', fontsize=12)
     plt.ylim(1e-3, 1e2)
 
     plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
     plt.tight_layout()
-    plt.savefig(dir + 'KH_jointPDFtemp_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.png')
+    plt.savefig(dir + f'KH_jointPDFtemp{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.png')
     plt.clf()
     plt.close()
 
@@ -369,7 +394,7 @@ def main():
     N1_local = rank * nfiles_local + n1
     N2_local = (rank + 1) * nfiles_local + n1
         
-    global temp_vol_avg_timeavg, binsizefact
+    global binsizefact
 
     binsizefact = NY/1024.
     ni = 36
@@ -381,8 +406,9 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
-
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='M')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -394,8 +420,9 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
-
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='M')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
         # Clean up memory
         del temp
         gc.collect()
@@ -404,17 +431,21 @@ def main():
 
     if rank == 0:
         import subprocess
-        subprocess.run([
-            'ffmpeg', '-y',
-            '-framerate', '10',
-            '-i', path_to_files + 'KH_jointPDFtemp_snapshot_%05dC' + str(F) + '.png',
-            '-c:v', 'libx264',
-            '-pix_fmt', 'yuv420p',
-            path_to_files + f'KH_jointPDFtemp_movie_C{F}.mp4'
-        ], check=True)
-        print("Movie saved.")
+        for i in ["V", "M", "E"]:
+            subprocess.run([
+                'ffmpeg', '-y',
+                '-framerate', '10',
+                '-i', path_to_files + f'KH_jointPDFtemp{i}_snapshot_%05dC' + str(F) + '.png',
+                '-c:v', 'libx264',
+                '-pix_fmt', 'yuv420p',
+                path_to_files + f'KH_jointPDFtemp{i}_movie_C{F}.mp4'
+            ], check=True)
+            print(f"{i} Movie saved.")
+
         if n1 == 0 and n2 == 125 and jump == 1:
-            make_steady_joint_PDFs(ni, nf, F)
+            make_steady_joint_PDFs(ni, nf, F, weight='V')
+            make_steady_joint_PDFs(ni, nf, F, weight='M')
+            make_steady_joint_PDFs(ni, nf, F, weight='E')
       
 if __name__ == "__main__":
     main()
