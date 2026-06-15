@@ -113,7 +113,7 @@ def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):
             
         bin_centers = data['bin_centers']
         T = 10**bin_centers
-        hist_vol = np.where((T >= 1.05e4) & (T <= 0.95e6), hist_vol, 0)
+        hist_vol = np.where((T >= 1.1e4) & (T <= 0.9e6), hist_vol, 0)
         hist_vol /= np.trapezoid(hist_vol, bin_centers)
 
 
@@ -125,7 +125,7 @@ def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
 
-    #logTemp_bins = np.linspace(np.log10(1.05e4), np.log10(0.95e6), int(binsizefact*45))
+    #logTemp_bins = np.linspace(np.log10(1.1e4), np.log10(0.9e6), int(binsizefact*45))
     logTemp_bins = np.linspace(3.5, 6.5,int(binsizefact*65))
 
     plt.figure(figsize=(16, 9))
@@ -176,13 +176,13 @@ def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_Ttimespace * np.diff(yedges_Ttimespace)[np.newaxis, :], axis=1)
     T_x = 10**bin_centers_x
-    P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
+    P_x = np.where((T_x >= 1.1e4) & (T_x <= 0.9e6), P_x, 0)
     P_x /= np.sum(P_x * np.diff(xedges_Ttimespace))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_Ttimespace * np.diff(xedges_Ttimespace)[:, np.newaxis], axis=0)
     T_y = 10**bin_centers_y
-    P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
+    P_y = np.where((T_y >= 1.1e4) & (T_y <= 0.9e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges_Ttimespace))  # Normalize P_y
 
     # pdf for <T> from simulation
@@ -197,7 +197,7 @@ def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt_timeavg, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
-    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav = np.where((T_avg >= 1.1e4) & (T_avg <= 0.9e6), hist_tempvolav, 0)
     hist_tempvolav /= np.trapezoid(hist_tempvolav, bin_centerstemptimespace)
 
     plt.subplot(1, 2, 2)
@@ -232,7 +232,10 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     hist_sum = None
 
     with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
-        temp_vol_avg_timeavg = f['temp_vol_av'] 
+        temp_vol_avg_timeavg = f['temp_vol_av']
+        P_E__T_log10T_av = f['P_E__T_log10T_av']
+        temp_range = f['temp_range']
+
     tempavgspacetime = np.broadcast_to(
     temp_vol_avg_timeavg[np.newaxis, :, np.newaxis],
     (NX, NY, NZ))
@@ -313,13 +316,13 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     # marginalized over y (sum along axis=1) → P(log10(<T>_t))
     P_x = np.sum(hist_sum * np.diff(yedges)[np.newaxis, :], axis=1)
     T_x = 10**bin_centers_x
-    P_x = np.where((T_x >= 1.05e4) & (T_x <= 0.95e6), P_x, 0)
+    P_x = np.where((T_x >= 1.1e4) & (T_x <= 0.9e6), P_x, 0)
     P_x /= np.sum(P_x * np.diff(xedges))  # Normalize P_x
 
     # marginalized over x (sum along axis=0) → P(log10(T))  
     P_y = np.sum(hist_sum * np.diff(xedges)[:, np.newaxis], axis=0)
     T_y = 10**bin_centers_y
-    P_y = np.where((T_y >= 1.05e4) & (T_y <= 0.95e6), P_y, 0)
+    P_y = np.where((T_y >= 1.1e4) & (T_y <= 0.9e6), P_y, 0)
     P_y /= np.sum(P_y * np.diff(yedges))  # Normalize P_y
 
     # pdf for <T> from simulation
@@ -334,16 +337,17 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     hist_tempvolav, bin_edges = np.histogram(np.log10(tempavgspacetime).flatten(), bins=bins_temptimespace, weights=wt_timeavg, density=True)
     bin_centerstemptimespace = 0.5 * (bin_edges[1:] + bin_edges[:-1])
     T_avg = 10**bin_centerstemptimespace
-    hist_tempvolav = np.where((T_avg >= 1.05e4) & (T_avg <= 0.95e6), hist_tempvolav, 0)
+    hist_tempvolav = np.where((T_avg >= 1.1e4) & (T_avg <= 0.9e6), hist_tempvolav, 0)
     hist_tempvolav /= np.trapezoid(hist_tempvolav, bin_centerstemptimespace)
 
     plt.subplot(1, 2, 2)
     plt.gca().set_facecolor('black')
-    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from joint PDF')
-    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P_V(log_{10}(T))$ from joint PDF')
-    plt.plot(bin_centers, hist_vol_av, color='yellow', label=r'$P_V(log_{10}(T))$ from simulation') 
+    plt.plot(bin_centers_x, P_x, color='cyan', label=r'$P(log_{10}(\langle T \rangle_t))$ from joint PDF')
+    plt.plot(bin_centers_y, P_y, color='magenta', label=r'$P(log_{10}(T))$ from joint PDF')
+    plt.plot(bin_centers, hist_vol_av, color='yellow', label=r'$P(log_{10}(T))$ from simulation') 
     plt.fill_between(bin_centers, hist_vol_av - hist_vol_sig, hist_vol_av + hist_vol_sig, color='yellow', alpha=0.3)
-    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P_V(log_{10}(\langle T \rangle_t))$ from simulation')
+    plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P(log_{10}(\langle T \rangle_t))$ from simulation')
+    plt.plot(np.log10(temp_range), P_E__T_log10T_av, color='red', label=r'$P(log_{10}(T))$ from time-averaged simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
     plt.ylabel(f'{W}-weighted PDF')
