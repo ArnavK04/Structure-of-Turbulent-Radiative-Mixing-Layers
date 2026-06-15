@@ -347,7 +347,8 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.plot(bin_centers, hist_vol_av, color='yellow', label=r'$P(log_{10}(T))$ from simulation') 
     plt.fill_between(bin_centers, hist_vol_av - hist_vol_sig, hist_vol_av + hist_vol_sig, color='yellow', alpha=0.3)
     plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P(log_{10}(\langle T \rangle_t))$ from simulation')
-    plt.plot(np.log10(temp_range), P_E__T_log10T_av, color='red', label=r'$P(log_{10}(T))$ from time-averaged simulation')
+    if W == 'E':
+        plt.plot(np.log10(temp_range), P_E__T_log10T_av, color='red', label=r'$P(log_{10}(T))$ from time-averaged simulation')
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
     plt.ylabel(f'{W}-weighted PDF')
