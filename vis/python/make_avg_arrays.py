@@ -45,9 +45,9 @@ rho_0 = P_0/T_0_code
 B_h = (5.0/2.0)*P_0/rho_h
 TMAX = 0.9e6
 TMIN = 1.1e4
-NX = int(128*2)
-NY = int(512*2)
-NZ = int(128*2)
+NX = int(128)
+NY = int(512)
+NZ = int(128)
 max_level = 0
 DY = 40./NY
 T_inflection = (T_h + T_c)/2
@@ -59,7 +59,7 @@ global dir
 #dir = r"../../my_outputs/noSMR_2_3_cutoffISMcoolfn/fid3D_32_cool/bin/"
 #dir = r"../../my_outputs/fiducial1040_cool2D/bin/"
 #dir = r"../../my_outputs/fid3D_2xlessvel_1040_cool/bin/"
-dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fiducialno_cooling/bin/"
+dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/constfiducial400less128_512_1_3cold/bin/"
 #dir = r"../../my_outputs/noise_tests/noSMR_2_3_cutoffISMcoolfn/fid3D_1040_cool/bin/"
 #dir = r"../../my_outputs/fid3D_halfbox_1040_cool/bin/"
 #dir = r"../../../Downloads/Chandra_data/snapsfiducial16cool/"
@@ -181,6 +181,11 @@ def make_1D(start, end, jump):
     v_turb_wholebox3 = np.zeros(end - start + 1)
     v_turb_wholebox = np.zeros(end - start + 1)
 
+    P_M__T_av = np.zeros(100)
+    P_M__T_sig = np.zeros(100)
+    P_M__T_log10T_av = np.zeros(100)
+    P_M__T_log10T_sig = np.zeros(100)
+
     if (start!=0):
         with np.load(dir + f"KH_1D_arrays_snapshot{n_i}_{n_f}_{str(start).zfill(5)}_C{F}_y_lims_corrected.npz", 'r') as f:
             v_TRML_integrated = f['v_TRML_integrated']
@@ -292,10 +297,23 @@ def make_1D(start, end, jump):
         P_E__T /= np.trapezoid(P_E__T, temp_range)
         P_E__T_log10T = P_E__T * temp_range / np.log10(np.exp(1.))
 
+        integrated_rho = np.sum(rho_vol) * (Y_lims[1] - Y_lims[0])
+        P_M__T = rho_vol/(T_prime * integrated_rho)
+        P_M__T = np.interp(temp_range, temp_vol, P_M__T)
+        P_M__T = np.where(temp_range < Tmin, 0.0, P_M__T)
+        P_M__T = np.where(temp_range > Tmax, 0.0, P_M__T)
+        P_M__T /= np.trapezoid(P_M__T, temp_range)
+        P_M__T_log10T = P_M__T * temp_range / np.log10(np.exp(1.))
+
+
         P_E__T_av += P_E__T
         P_E__T_sig += P_E__T * P_E__T
         P_E__T_log10T_av += P_E__T_log10T
         P_E__T_log10T_sig += P_E__T_log10T * P_E__T_log10T
+        P_M__T_av += P_M__T
+        P_M__T_sig += P_M__T * P_M__T
+        P_M__T_log10T_av += P_M__T_log10T
+        P_M__T_log10T_sig += P_M__T_log10T * P_M__T_log10T
         rho_mw_av += rho_mw
         total_vel_av += np.sqrt(vx1_vol**2 + vx2_vol**2 + vx3_vol**2)
         emis_vol_av += emis_vol
@@ -334,6 +352,10 @@ def make_1D(start, end, jump):
     P_E__T_sig /= count
     P_E__T_log10T_av /= count
     P_E__T_log10T_sig /= count
+    P_M__T_av /= count
+    P_M__T_sig /= count
+    P_M__T_log10T_av /= count
+    P_M__T_log10T_sig /= count
     rho_mw_av /= count
     total_vel_av /= count
     rho_av /= count
@@ -367,6 +389,8 @@ def make_1D(start, end, jump):
 
     P_E__T_sig = np.sqrt(P_E__T_sig - P_E__T_av * P_E__T_av)
     P_E__T_log10T_sig = np.sqrt(P_E__T_log10T_sig - P_E__T_log10T_av * P_E__T_log10T_av)
+    P_M__T_sig = np.sqrt(P_M__T_sig - P_M__T_av * P_M__T_av)
+    P_M__T_log10T_sig = np.sqrt(P_M__T_log10T_sig - P_M__T_log10T_av * P_M__T_log10T_av)
     rho_sig = np.sqrt(rho2_av - rho_av * rho_av)
     rho_vx1_sig = np.sqrt(rho_vx12_av - rho_vx1_av * rho_vx1_av)
     rho_vx2_sig = np.sqrt(rho_vx22_av - rho_vx2_av * rho_vx2_av)
@@ -385,6 +409,8 @@ def make_1D(start, end, jump):
     np.savez_compressed(dir + f"KH_1D_arrays_time_averaged{start}to{end}with{jump}.npz",
                 P_E__T_av = P_E__T_av, P_E__T_sig = P_E__T_sig,
                 P_E__T_log10T_av = P_E__T_log10T_av, P_E__T_log10T_sig = P_E__T_log10T_sig,
+                P_M__T_av = P_M__T_av, P_M__T_sig = P_M__T_sig,
+                P_M__T_log10T_av = P_M__T_log10T_av, P_M__T_log10T_sig = P_M__T_log10T_sig,
                 total_vel_av = total_vel_av, temp_range = temp_range,
                 rho_av = rho_av, rho_mw_av = rho_mw_av,
                 rho_vx1_av = rho_vx1_av,
@@ -1327,9 +1353,9 @@ if __name__ == "__main__":
     Lambda_fn = np.vectorize(ISMCoolFn)(temp_arr)/COOLING_UNIT
     cooling_arr = np.divide(3. * (temp_arr/TEMPERATURE)**2 , 2*P_0_array * Lambda_fn, out=np.full_like(temp_arr, math.inf, dtype=float), 
                     where=Lambda_fn != 0)
-    #time_0 = np.min(cooling_arr)
+    time_0 = np.min(cooling_arr)
     #time_0 = time_mid
-    time_0 = 1.0
+    #time_0 = 1.0
     print(f"Characteristic cooling time (time_0) = {time_0} code units")
     print(f"Ratio of cooling time at 1e5 to minimum cooling time is {time_mid/time_0}")
 

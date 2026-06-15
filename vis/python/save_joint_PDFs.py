@@ -233,7 +233,12 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
 
     with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av']
-        P_E__T_log10T_av = f['P_E__T_log10T_av']
+        if weight == 'E':
+            P_E__T_log10T_av = f['P_E__T_log10T_av']
+            P_E__T_log10T_sig = f['P_E__T_log10T_sig']
+        elif weight == 'M':
+            P_M__T_log10T_av = f['P_M__T_log10T_av']
+            P_M__T_log10T_sig = f['P_M__T_log10T_sig']
         temp_range = f['temp_range']
 
     tempavgspacetime = np.broadcast_to(
@@ -348,7 +353,11 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.fill_between(bin_centers, hist_vol_av - hist_vol_sig, hist_vol_av + hist_vol_sig, color='yellow', alpha=0.3)
     plt.plot(bin_centerstemptimespace, hist_tempvolav, color='lime', label=r'$P(log_{10}(\langle T \rangle_t))$ from simulation')
     if W == 'E':
-        plt.plot(np.log10(temp_range), P_E__T_log10T_av, color='red', label=r'$P(log_{10}(T))$ from time-averaged simulation')
+        plt.plot(np.log10(temp_range), P_E__T_log10T_av, color='red', label=r'$\bar{P}(log_{10}(\langle T \rangle_t))$ from time-averaged simulation')
+        plt.fill_between(np.log10(temp_range), P_E__T_log10T_av - P_E__T_log10T_sig, P_E__T_log10T_av + P_E__T_log10T_sig, color='red', alpha=0.3)
+    elif W == 'M':
+        plt.plot(np.log10(temp_range), P_M__T_log10T_av, color='red', label=r'$\bar{P}(log_{10}(\langle T \rangle_t))$ from time-averaged simulation')
+        plt.fill_between(np.log10(temp_range), P_M__T_log10T_av - P_M__T_log10T_sig, P_M__T_log10T_av + P_M__T_log10T_sig, color='red', alpha=0.3)
     plt.yscale('log')
     plt.xlabel(r'$log_{10}(\langle T \rangle_t)$ and $log_{10}(T)$')
     plt.ylabel(f'{W}-weighted PDF')
