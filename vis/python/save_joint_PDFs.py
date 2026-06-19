@@ -15,7 +15,7 @@ from matplotlib.lines import Line2D
 from scipy.interpolate import interp1d
 
 from save_2D_arrays_3D import ATOMIC_MASS, LENGTH, TIME, MASS, VELOCITY, DENSITY, ENERGY, POWER, PRESSURE, TEMPERATURE, MU, N_UNIT, COOLING_UNIT, CHI, GAMMA
-
+from make_avg_arrays import P_0
 from save_2D_arrays_3D import CoarseByFactor, ISMCoolFn
 
 def SetGlobals(path_to_files, F):
@@ -72,7 +72,7 @@ def ReadBinFile_temp(path_to_files, n, F):
     del file_data
     gc.collect()
     
-    return den, temp_volavg, temp, times
+    return prs, den, temp_volavg, temp, times
 
 def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):  
     """
@@ -223,6 +223,77 @@ def MakeJointPDFs(den, tempavgspace, temp, tim, n, F, ni, nf, weight):
 
     np.savez_compressed(dir + f'KH_jointPDFtemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_Ttimespace_unnormalized= hist_Ttimespace_unnormalized, hist_Tspace_unnormalized=hist_Tspace_unnormalized, xedges=xedges_Tspace, yedges=yedges_Tspace, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
 
+def MakeJointPDFs_prs_temp(prs, den, temp, tim, n, F, ni, nf, weight):  
+    """
+    Make joint PDF of  arr1 vs arr2. Right now just for P vs T
+    """
+    global binsizefact, P_0
+    prs = prs/P_0
+
+    if weight == 'V':
+        wt = np.ones_like(temp).flatten()
+        W = 'V'
+    elif weight == 'M':
+        wt = den.flatten()    # isobaric conditions
+        W = 'M'
+    elif weight == 'E':
+        wt = (den*den*np.vectorize(ISMCoolFn, otypes = 'd')(temp)/COOLING_UNIT).flatten()  # Emissivity weighting
+        W = 'E'
+
+    templog_bins = np.linspace(3.5, 6.5,int(binsizefact*65))
+    pres_bins = np.logspace(0.5,1.5,int(binsizefact*65))
+
+    plt.figure(figsize=(16, 9))
+    plt.gca().set_facecolor('black')
+    hist_normalized, xedges, yedges = np.histogram2d(np.log10(prs).flatten(), np.log10(temp).flatten(), bins=[pres_bins, templog_bins], weights=wt, density=True)
+    hist_unnormalized, xedges, yedges = np.histogram2d(np.log10(prs).flatten(), np.log10(temp).flatten(), bins=[pres_bins, templog_bins], weights=wt, density=False)
+    bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
+    bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
+    levels = np.logspace(-4, 1, 8)
+    arr = [1, 2, 3, 4, 5, 6, 7, 8]
+
+    cmap = cm.viridis
+    norm = mcolors.Normalize(vmin=min(arr), vmax=max(arr))
+    colors = [cmap(norm(val)) for val in arr]
+    colors = colors[::-1]  # reverse the colors so that higher levels are darker
+
+    print(f"Snapshot {n}: levels = {levels}, unique = {len(set(levels))}")
+    hist_normalized += 1e-11
+    im = plt.imshow(hist_normalized.T, extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+
+    if len(levels) >= 2:
+        plt.contour(bin_centers_x, bin_centers_y, hist_normalized.T, 
+                levels=levels, 
+                colors=colors,
+                linewidths=1.5)
+    plt.ylim(3.5, 6.5)
+    plt.xlim(0.5, 1.5)
+    plt.colorbar(im)
+    plt.xlabel(r'$log_{10}(p/p_0)$')
+    plt.ylabel(r'$log_{10}(T)$')
+    plt.grid(True, which="both", ls="--", alpha=0.7)
+
+    legend_elements = [
+        Line2D([0], [0], color=colors[0],  label=f'P = {levels[0]:.2e}'),
+        Line2D([0], [0], color=colors[1],  label=f'P= {levels[1]:.2e}'),
+        Line2D([0], [0], color=colors[2], label=f'P= {levels[2]:.2e}'),
+        Line2D([0], [0], color=colors[3], label=f'P= {levels[3]:.2e}'),
+        Line2D([0], [0], color=colors[4], label=f'P= {levels[4]:.2e}'),
+        Line2D([0], [0], color=colors[5], label=f'P= {levels[5]:.2e}'),
+        Line2D([0], [0], color=colors[6], label=f'P= {levels[6]:.2e}'),
+        Line2D([0], [0], color=colors[7], label=f'P= {levels[7]:.2e}'),
+    ]
+
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
+
+    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ' Snapshot ' + str(n) + ', time = ' + str(tim) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
+    plt.tight_layout()
+    plt.savefig(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.png')
+    plt.clf()
+    plt.close()
+
+    np.savez_compressed(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_normalized= hist_normalized, hist_unnormalized=hist_unnormalized, xedges=xedges, yedges=yedges, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
+
 def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     """
     Sum the un normalized joint histograms for the snapshots from n1 to n2 with interval jump, 
@@ -230,6 +301,7 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     """
     global dir, binsizefact, n1, n2, jump
     hist_sum = None
+    hist_prstemp_sum = None
 
     with np.load(dir + f"KH_1D_arrays_time_averaged{ni}to{nf}with{jump}.npz", 'r') as f:
         temp_vol_avg_timeavg = f['temp_vol_av']
@@ -276,15 +348,32 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
         else:
             hist_sum += hist_vol_
 
+        # loading prs vs temp here only
+        with np.load(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', 'r') as data:
+            hist_prstemp_ = data['hist_unnormalized']
+        if hist_prstemp_sum is None:
+            hist_prstemp_sum = hist_prstemp_
+        else:
+            hist_prstemp_sum += hist_prstemp_
+
     with np.load(dir + f'KH_jointPDFtemp{W}_snapshot_' + str(ni).zfill(5) + f'C{F}' + '.npz', 'r') as data:
         xedges = data['xedges']
         yedges = data['yedges']
         levels = data['levels']
         colors = data['colors']
         colors = [tuple(color) for color in colors]
+    with np.load(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(ni).zfill(5) + f'C{F}' + '.npz', 'r') as data:
+        xedges_prs = data['xedges']
+        yedges_prs = data['yedges']
+        levels_prs = data['levels']
+        colors_prs = data['colors']
+        colors_prs = [tuple(color) for color in colors_prs]
 
     hist_sum /= np.sum(hist_sum * np.diff(xedges)[:, np.newaxis] * np.diff(yedges)[np.newaxis, :])
     hist_sum += 1e-11
+
+    hist_prstemp_sum /= np.sum(hist_prstemp_sum * np.diff(xedges_prs)[:, np.newaxis] * np.diff(yedges_prs)[np.newaxis, :])
+    hist_prstemp_sum += 1e-11
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -371,6 +460,46 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.clf()
     plt.close()
 
+    # plotting prs temp pdfs
+
+    plt.figure(figsize=(16, 9))
+    plt.gca().set_facecolor('black')
+
+    im = plt.imshow(hist_prstemp_sum.T, extent=[xedges_prs[0], xedges_prs[-1], yedges_prs[0], yedges_prs[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+
+    bin_centers_x = 0.5*(xedges_prs[1:] + xedges_prs[:-1])
+    bin_centers_y = 0.5*(yedges_prs[1:] + yedges_prs[:-1])
+    plt.contour(bin_centers_x, bin_centers_y, hist_prstemp_sum.T, 
+            levels=levels_prs, 
+            colors=colors_prs,
+            linewidths=1.5)
+    plt.ylim(3.5, 6.5)
+    plt.xlim(0.5,1.5)
+    plt.colorbar(im)
+    plt.xlabel(r'$log_{10}(p/p_0)$')
+    plt.ylabel(r'$log_{10}(T)$')
+    plt.grid(True, which="both", ls="--", alpha=0.7)
+
+    legend_elements = [
+        Line2D([0], [0], color=colors_prs[0],  label=f'P = {levels_prs[0]:.2e}'),
+        Line2D([0], [0], color=colors_prs[1],  label=f'P= {levels_prs[1]:.2e}'),
+        Line2D([0], [0], color=colors_prs[2], label=f'P= {levels_prs[2]:.2e}'),
+        Line2D([0], [0], color=colors_prs[3], label=f'P= {levels_prs[3]:.2e}'),
+        Line2D([0], [0], color=colors_prs[4], label=f'P= {levels_prs[4]:.2e}'),
+        Line2D([0], [0], color=colors_prs[5], label=f'P= {levels_prs[5]:.2e}'),
+        Line2D([0], [0], color=colors_prs[6], label=f'P= {levels_prs[6]:.2e}'),
+        Line2D([0], [0], color=colors_prs[7], label=f'P= {levels_prs[7]:.2e}'),
+    ]
+
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
+
+    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
+    plt.tight_layout()
+    plt.savefig(dir + f'KH_jointPDFprstemp{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.png')
+    plt.clf()
+    plt.close()
+
+
 def main():
     comm = MPI.COMM_WORLD
     global rank, size
@@ -416,13 +545,16 @@ def main():
 
     for i in range(N1_local, N2_local):
         print(f"Processing snapshot {i}...")
-        den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
+        prs, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, i, F)
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='M')
-        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='V')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='M')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='E')
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -430,13 +562,16 @@ def main():
     if rank < nproc_extra: # Process extra files across ranks
         n = size * nfiles_local + rank + n1
         print(f"Processing extra snapshot {n}")
-        den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
+        prs, den, temp_avgspace, temp, t = ReadBinFile_temp(path_to_files, n, F)
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='M')
-        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
+        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='V')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='M')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='E')
         # Clean up memory
         del temp
         gc.collect()
@@ -459,7 +594,7 @@ def main():
         if n1 == 0 and n2 == 125 and jump == 1:
             make_steady_joint_PDFs(ni, nf, F, weight='V')
             make_steady_joint_PDFs(ni, nf, F, weight='M')
-            #make_steady_joint_PDFs(ni, nf, F, weight='E')
+            make_steady_joint_PDFs(ni, nf, F, weight='E')
       
 if __name__ == "__main__":
     main()
