@@ -422,7 +422,7 @@ def main():
         (NX, NY, NZ))
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='M')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -436,7 +436,7 @@ def main():
         (NX, NY, NZ))
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
         MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='M')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
         # Clean up memory
         del temp
         gc.collect()
@@ -445,7 +445,7 @@ def main():
 
     if rank == 0:
         import subprocess
-        for i in ["V", "M", "E"]:
+        for i in ["V", "M"]:#, "E"]:
             subprocess.run([
                 'ffmpeg', '-y',
                 '-framerate', '10',
@@ -459,7 +459,7 @@ def main():
         if n1 == 0 and n2 == 125 and jump == 1:
             make_steady_joint_PDFs(ni, nf, F, weight='V')
             make_steady_joint_PDFs(ni, nf, F, weight='M')
-            make_steady_joint_PDFs(ni, nf, F, weight='E')
+            #make_steady_joint_PDFs(ni, nf, F, weight='E')
       
 if __name__ == "__main__":
     main()
