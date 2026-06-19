@@ -241,11 +241,11 @@ def MakeJointPDFs_prs_temp(prs, den, temp, tim, n, F, ni, nf, weight):
         W = 'E'
 
     templog_bins = np.linspace(3.5, 6.5,int(binsizefact*65))
-    pres_bins = np.logspace(0.5,1.5,int(binsizefact*65))
+    pres_bins = np.linspace(-0.20,0.15,int(binsizefact*65))
 
     plt.figure(figsize=(16, 9))
     plt.gca().set_facecolor('black')
-    hist_normalized, xedges, yedges = np.histogram2d(np.log10(prs).flatten(), np.log10(temp).flatten(), bins=[pres_bins, templog_bins], weights=wt, density=True)
+    hist_normalized, xedges, yedges = np.histogram2d(np.log10(prs).flatten(), np.log10(temp).flatten(),bins=[pres_bins, templog_bins], weights=wt, density=True)
     hist_unnormalized, xedges, yedges = np.histogram2d(np.log10(prs).flatten(), np.log10(temp).flatten(), bins=[pres_bins, templog_bins], weights=wt, density=False)
     bin_centers_x = 0.5*(xedges[1:] + xedges[:-1])
     bin_centers_y = 0.5*(yedges[1:] + yedges[:-1])
@@ -267,7 +267,7 @@ def MakeJointPDFs_prs_temp(prs, den, temp, tim, n, F, ni, nf, weight):
                 colors=colors,
                 linewidths=1.5)
     plt.ylim(3.5, 6.5)
-    plt.xlim(0.5, 1.5)
+    plt.xlim(-0.20, 0.15)
     plt.colorbar(im)
     plt.xlabel(r'$log_{10}(p/p_0)$')
     plt.ylabel(r'$log_{10}(T)$')
@@ -292,7 +292,7 @@ def MakeJointPDFs_prs_temp(prs, den, temp, tim, n, F, ni, nf, weight):
     plt.clf()
     plt.close()
 
-    np.savez_compressed(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_normalized= hist_normalized, hist_unnormalized=hist_unnormalized, xedges=xedges, yedges=yedges, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
+    np.savez_compressed(dir + f'KH_jointPDFprstemp{W}_snapshot_' + str(n).zfill(5) + f'C{F}' + '.npz', hist_unnormalized= hist_unnormalized,hist_normalized= hist_normalized, xedges=xedges, yedges=yedges, levels=levels, colors = np.array(colors), vmin=1e-5, vmax=1e2)
 
 def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     """
@@ -474,7 +474,7 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
             colors=colors_prs,
             linewidths=1.5)
     plt.ylim(3.5, 6.5)
-    plt.xlim(0.5,1.5)
+    plt.xlim(-0.20,0.15)
     plt.colorbar(im)
     plt.xlabel(r'$log_{10}(p/p_0)$')
     plt.ylabel(r'$log_{10}(T)$')
@@ -549,12 +549,12 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='M')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='V')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='M')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
         MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='V')
         MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='M')
-        MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='E')
+        #MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='E')
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -566,12 +566,12 @@ def main():
         temp_spaceavg3D = np.broadcast_to(
         temp_avgspace[np.newaxis, :, np.newaxis],
         (NX, NY, NZ))
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='M')
-        MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='V')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='M')
+        #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
         MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='V')
         MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='M')
-        MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='E')
+        #MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='E')
         # Clean up memory
         del temp
         gc.collect()
@@ -581,20 +581,28 @@ def main():
     if rank == 0:
         import subprocess
         for i in ["V", "M"]:#, "E"]:
-            subprocess.run([
+            """subprocess.run([
                 'ffmpeg', '-y',
                 '-framerate', '10',
                 '-i', path_to_files + f'KH_jointPDFtemp{i}_snapshot_%05dC' + str(F) + '.png',
                 '-c:v', 'libx264',
                 '-pix_fmt', 'yuv420p',
                 path_to_files + f'KH_jointPDFtemp{i}_movie_C{F}.mp4'
+            ], check=True)"""
+            print(f"{i} Movie saved.")
+            subprocess.run([
+                'ffmpeg', '-y',
+                '-framerate', '10',
+                '-i', path_to_files + f'KH_jointPDFprstemp{i}_snapshot_%05dC' + str(F) + '.png',
+                '-c:v', 'libx264',
+                '-pix_fmt', 'yuv420p',
+                path_to_files + f'KH_jointPDFprstemp{i}_movie_C{F}.mp4'
             ], check=True)
             print(f"{i} Movie saved.")
-
         if n1 == 0 and n2 == 125 and jump == 1:
             make_steady_joint_PDFs(ni, nf, F, weight='V')
             make_steady_joint_PDFs(ni, nf, F, weight='M')
-            make_steady_joint_PDFs(ni, nf, F, weight='E')
+            #make_steady_joint_PDFs(ni, nf, F, weight='E')
       
 if __name__ == "__main__":
     main()
