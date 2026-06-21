@@ -575,6 +575,49 @@ def plot_vturb_profiles(filename1, filename2, filename3, filename4, filename5, f
 
     plt.savefig(dir + 'turbulent_velocity_profiles_y_compare.png', bbox_inches='tight', dpi=300)
 
+def plot_prsvs_temp(filename1, filename2, filename3, filename4, filename5, filename6, ni, nf, W, F):
+
+    dir = r"../../../Downloads/Trillium_data/corrected_1_3_runs/"
+
+    with np.load(dir + "snaps" + f'{filename1}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P1 = f['avg_P']
+        median_P1 = f['median_P']
+        p16_P1 = f['p16_P']
+        p84_P1 = f['p84_P']
+        bin_centers_x = f['bin_centers_x']
+        bin_centers_y = f['bin_centers_y']
+
+    with np.load(dir + "snaps" + f'{filename2}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P2 = f['avg_P']
+        median_P2 = f['median_P']
+        p16_P2 = f['p16_P']
+        p84_P2 = f['p84_P']
+
+    with np.load(dir + "snaps" + f'{filename3}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P3 = f['avg_P']
+        median_P3 = f['median_P']
+        p16_P3 = f['p16_P']
+        p84_P3 = f['p84_P']
+
+    with np.load(dir + "snaps" + f'{filename4}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P4 = f['avg_P']
+        median_P4 = f['median_P']
+        p16_P4 = f['p16_P']
+        p84_P4 = f['p84_P']
+
+    with np.load(dir + "snaps" + f'{filename5}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P5 = f['avg_P']
+        median_P5 = f['median_P']
+        p16_P5 = f['p16_P']
+        p84_P5 = f['p84_P']
+
+    with np.load(dir + "snaps" + f'{filename6}22k_256_1024_1_3_' + f'/KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', 'r') as f:
+        avg_P6 = f['avg_P']
+        median_P6 = f['median_P']
+        p16_P6 = f['p16_P']
+        p84_P6 = f['p84_P']
+
+    plt.figure(figsize=(14, 14))
 
 
 if __name__ == "__main__":

@@ -464,33 +464,49 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
 
     # add median, and average pressure contours
     # Normalize each temperature column to get p(p | T)
-    hist_norm = hist_prstemp_sum / (hist_prstemp_sum.sum(axis=0, keepdims=True) + 1e-30)
-
-    # Cumulative sum along pressure axis
-    cumsum = np.cumsum(hist_norm, axis=0)  # shape: (n_prs_bins, n_temp_bins)
-
-    # Median and 1-sigma percentiles for each T bin
-    median_P = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.50)] for j in range(len(bin_centers_y))])
-    p16_P    = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.16)] for j in range(len(bin_centers_y))])
-    p84_P    = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.84)] for j in range(len(bin_centers_y))])
-
-    # Average pressure
-    avg_P = hist_norm.T @ bin_centers_x
 
     plt.figure(figsize=(16, 9))
     plt.gca().set_facecolor('black')
 
     im = plt.imshow(hist_prstemp_sum.T, extent=[xedges_prs[0], xedges_prs[-1], yedges_prs[0], yedges_prs[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
 
-    bin_centers_x = 0.5*(xedges_prs[1:] + xedges_prs[:-1])
-    bin_centers_y = 0.5*(yedges_prs[1:] + yedges_prs[:-1])
-    plt.contour(bin_centers_x, bin_centers_y, hist_prstemp_sum.T, 
+    bin_centers_xprs = 0.5*(xedges_prs[1:] + xedges_prs[:-1])
+    bin_centers_yprs = 0.5*(yedges_prs[1:] + yedges_prs[:-1])
+    plt.contour(bin_centers_xprs, bin_centers_yprs, hist_prstemp_sum.T, 
             levels=levels_prs, 
             colors=colors_prs,
             linewidths=1.5)
-    valid = hist_prstemp_sum.sum(axis=0) > 0
-    plt.plot(avg_P[valid],    bin_centers_y[valid], color='cyan', linewidth=2, linestyle='-', label='Mean P')
-    plt.plot(median_P[valid], bin_centers_y[valid], color='red', linewidth=2, linestyle='-',  label='Median P')
+    
+    # Use raw histogram without the 1e-11 floor for stats
+    hist_raw = hist_prstemp_sum - 1e-11  # undo the floor
+    hist_raw = np.maximum(hist_raw, 0)   # clip any floating point negatives
+
+    hist_norm = hist_raw / (hist_raw.sum(axis=0, keepdims=True) + 1e-30)
+
+    cumsum = np.cumsum(hist_norm, axis=0)
+
+    median_P = np.array([bin_centers_xprs[min(np.searchsorted(cumsum[:, j], 0.50), len(bin_centers_xprs)-1)] for j in range(len(bin_centers_yprs))])
+    p16_P    = np.array([bin_centers_xprs[min(np.searchsorted(cumsum[:, j], 0.16), len(bin_centers_xprs)-1)] for j in range(len(bin_centers_yprs))])
+    p84_P    = np.array([bin_centers_xprs[min(np.searchsorted(cumsum[:, j], 0.84), len(bin_centers_xprs)-1)] for j in range(len(bin_centers_yprs))])
+
+    avg_P = hist_norm.T @ bin_centers_xprs
+
+    # valid: T bins where the real signal (not just floor) exists
+    valid = hist_raw.sum(axis=0) > 1e-10
+
+    # printing some stats for debugging
+    print("xedges_prs range:", xedges_prs[0], xedges_prs[-1])   # should be ~(-0.20, 0.15) — pressure
+    print("yedges_prs range:", yedges_prs[0], yedges_prs[-1])   # should be ~(3.5, 6.5)    — temperature
+    print("hist_prstemp_sum.shape:", hist_prstemp_sum.shape)     # (n_prs_bins, n_temp_bins) ?
+
+    # Then check: does summing axis=0 give a per-T-bin total?
+    # The result should peak somewhere in the middle of the T range
+    col_sums = hist_prstemp_sum.sum(axis=0)
+    print("col_sums argmax maps to T =", bin_centers_yprs[col_sums.argmax()])  # should be a temperature ~4-5 log10
+    print("col_sums argmax maps to P =", bin_centers_xprs[col_sums.argmax()])  # should NOT make sense as pressure
+
+    plt.plot(avg_P[valid],    bin_centers_yprs[valid], color='cyan', linewidth=2, linestyle='-', label='Mean P')
+    plt.plot(median_P[valid], bin_centers_yprs[valid], color='red', linewidth=2, linestyle='-',  label='Median P')
     plt.ylim(3.5, 6.5)
     plt.xlim(-0.20,0.15)
     plt.colorbar(im)
@@ -519,7 +535,7 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.clf()
     plt.close()
 
-    np.savez_compressed(dir + f'KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', avg_P = avg_P, median_P = median_P, p16_P = p16_P, p84_P = p84_P, bin_centers_x=bin_centers_x, bin_centers_y=bin_centers_y, vmin=1e-5, vmax=1e2)
+    np.savez_compressed(dir + f'KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', avg_P = avg_P, median_P = median_P, p16_P = p16_P, p84_P = p84_P, bin_centers_x=bin_centers_xprs, bin_centers_y=bin_centers_yprs, vmin=1e-5, vmax=1e2)
 
 def main():
     comm = MPI.COMM_WORLD
