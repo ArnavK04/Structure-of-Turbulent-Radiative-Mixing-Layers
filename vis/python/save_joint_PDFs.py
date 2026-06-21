@@ -462,6 +462,21 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
 
     # plotting prs temp pdfs
 
+    # add median, and average pressure contours
+    # Normalize each temperature column to get p(p | T)
+    hist_norm = hist_prstemp_sum / (hist_prstemp_sum.sum(axis=0, keepdims=True) + 1e-30)
+
+    # Cumulative sum along pressure axis
+    cumsum = np.cumsum(hist_norm, axis=0)  # shape: (n_prs_bins, n_temp_bins)
+
+    # Median and 1-sigma percentiles for each T bin
+    median_P = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.50)] for j in range(len(bin_centers_y))])
+    p16_P    = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.16)] for j in range(len(bin_centers_y))])
+    p84_P    = np.array([bin_centers_x[np.searchsorted(cumsum[:, j], 0.84)] for j in range(len(bin_centers_y))])
+
+    # Average pressure
+    avg_P = hist_norm.T @ bin_centers_x
+
     plt.figure(figsize=(16, 9))
     plt.gca().set_facecolor('black')
 
@@ -473,6 +488,9 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
             levels=levels_prs, 
             colors=colors_prs,
             linewidths=1.5)
+    valid = hist_prstemp_sum.sum(axis=0) > 0
+    plt.plot(avg_P[valid],    bin_centers_y[valid], color='cyan', linewidth=2, linestyle='-', label='Mean P')
+    plt.plot(median_P[valid], bin_centers_y[valid], color='red', linewidth=2, linestyle='-',  label='Median P')
     plt.ylim(3.5, 6.5)
     plt.xlim(-0.20,0.15)
     plt.colorbar(im)
@@ -489,6 +507,8 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
         Line2D([0], [0], color=colors_prs[5], label=f'P= {levels_prs[5]:.2e}'),
         Line2D([0], [0], color=colors_prs[6], label=f'P= {levels_prs[6]:.2e}'),
         Line2D([0], [0], color=colors_prs[7], label=f'P= {levels_prs[7]:.2e}'),
+        Line2D([0], [0], color='cyan', label='Mean P', linestyle='-'),
+        Line2D([0], [0], color='red', label='Median P', linestyle='-'),
     ]
 
     plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
@@ -499,6 +519,7 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.clf()
     plt.close()
 
+    np.savez_compressed(dir + f'KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', avg_P = avg_P, median_P = median_P, p16_P = p16_P, p84_P = p84_P, bin_centers_x=bin_centers_x, bin_centers_y=bin_centers_y, vmin=1e-5, vmax=1e2)
 
 def main():
     comm = MPI.COMM_WORLD
