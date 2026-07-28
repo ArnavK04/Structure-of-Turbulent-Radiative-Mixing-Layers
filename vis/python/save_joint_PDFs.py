@@ -537,6 +537,33 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.clf()
     plt.close()
 
+    # plotting another figure but linear colorbars
+    plt.figure(figsize=(16, 9))
+    plt.gca().set_facecolor('black')
+
+    im = plt.imshow(hist_prstemp_sum_norm.T, extent=[xedges_prs[0], xedges_prs[-1], yedges_prs[0], yedges_prs[-1]], aspect='auto', origin='lower', cmap='inferno', vmin=0.0, vmax=1e2)
+    plt.contour(bin_centers_xprs, bin_centers_yprs, hist_prstemp_sum_norm.T, 
+            levels=levels_prs, 
+            colors=colors_prs,
+            linewidths=1.5)
+    
+    plt.plot(avg_P[valid],    bin_centers_yprs[valid], color='cyan', linewidth=2, linestyle='-', label='Mean P')
+    plt.plot(median_P[valid], bin_centers_yprs[valid], color='red', linewidth=2, linestyle='-',  label='Median P')
+    plt.ylim(3.5, 6.5)
+    plt.xlim(-0.20,0.15)
+    plt.colorbar(im)
+    plt.xlabel(r'$log_{10}(p/p_0)$')
+    plt.ylabel(r'$log_{10}(T)$')
+    plt.grid(True, which="both", ls="--", alpha=0.7)
+
+    plt.legend(handles=legend_elements, loc='upper left', fontsize=10)
+
+    plt.suptitle(str(int(NX*F/2**max_level)) + 'x' + str(int(NY*F/2**max_level)) + 'x' + str(int(NZ*F/2**max_level)) + ', SMR = ' + str(max_level) + ', Coarsening Factor = ' + str(F))
+    plt.tight_layout()
+    plt.savefig(dir + f'KH_jointPDFprstemp{W}_snapshotlinearcolor_' + f'{ni}to{nf}' + f'C{F}' + '.png')
+    plt.clf()
+    plt.close()
+
     np.savez_compressed(dir + f'KH_jointPDFprstemp_percentiles{W}_snapshot_' + f'{ni}to{nf}' + f'C{F}' + '.npz', avg_P = avg_P, median_P = median_P, p16_P = p16_P, p84_P = p84_P, bin_centers_x=bin_centers_xprs, bin_centers_y=bin_centers_yprs, vmin=1e-5, vmax=1e2)
 
 def main():
