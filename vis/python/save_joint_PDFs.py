@@ -372,8 +372,8 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     hist_sum /= np.sum(hist_sum * np.diff(xedges)[:, np.newaxis] * np.diff(yedges)[np.newaxis, :])
     hist_sum += 1e-11
 
-    hist_prstemp_sum /= np.sum(hist_prstemp_sum * np.diff(xedges_prs)[:, np.newaxis] * np.diff(yedges_prs)[np.newaxis, :])
-    hist_prstemp_sum += 1e-11
+    hist_prstemp_sum_norm = hist_prstemp_sum / np.sum(hist_prstemp_sum * np.diff(xedges_prs)[:, np.newaxis] * np.diff(yedges_prs)[np.newaxis, :])
+    hist_prstemp_sum_norm += 1e-11
 
     plt.figure(figsize=(16, 9))
     plt.subplot(1, 2, 1)
@@ -468,20 +468,20 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     plt.figure(figsize=(16, 9))
     plt.gca().set_facecolor('black')
 
-    im = plt.imshow(hist_prstemp_sum.T, extent=[xedges_prs[0], xedges_prs[-1], yedges_prs[0], yedges_prs[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
+    im = plt.imshow(hist_prstemp_sum_norm.T, extent=[xedges_prs[0], xedges_prs[-1], yedges_prs[0], yedges_prs[-1]], aspect='auto', origin='lower', cmap='inferno', norm='log', vmin=1e-5, vmax=1e2)
 
     bin_centers_xprs = 0.5*(xedges_prs[1:] + xedges_prs[:-1])
     bin_centers_yprs = 0.5*(yedges_prs[1:] + yedges_prs[:-1])
-    plt.contour(bin_centers_xprs, bin_centers_yprs, hist_prstemp_sum.T, 
+    plt.contour(bin_centers_xprs, bin_centers_yprs, hist_prstemp_sum_norm.T, 
             levels=levels_prs, 
             colors=colors_prs,
             linewidths=1.5)
     
-    # Use raw histogram without the 1e-11 floor for stats
-    hist_raw = hist_prstemp_sum - 1e-11  # undo the floor
-    hist_raw = np.maximum(hist_raw, 0)   # clip any floating point negatives
-
-    hist_norm = hist_raw / (hist_raw.sum(axis=0, keepdims=True) + 1e-30)
+    # Using the raw
+    hist_raw = hist_prstemp_sum
+    hist_null = np.zeros_like(hist_raw)
+    b = hist_raw.sum(axis=0, keepdims=True)
+    hist_norm = np.divide(hist_raw, b , out = hist_null, where = b > 0)
 
     cumsum = np.cumsum(hist_norm, axis=0)
 
@@ -504,6 +504,8 @@ def make_steady_joint_PDFs(ni, nf, F, weight='V'):
     col_sums = hist_prstemp_sum.sum(axis=0)
     print("col_sums argmax maps to T =", bin_centers_yprs[col_sums.argmax()])  # should be a temperature ~4-5 log10
     print("col_sums argmax maps to P =", bin_centers_xprs[col_sums.argmax()])  # should NOT make sense as pressure
+
+    print()
 
     plt.plot(avg_P[valid],    bin_centers_yprs[valid], color='cyan', linewidth=2, linestyle='-', label='Mean P')
     plt.plot(median_P[valid], bin_centers_yprs[valid], color='red', linewidth=2, linestyle='-',  label='Median P')
@@ -591,7 +593,7 @@ def main():
         #MakeJointPDFs(den, temp_spaceavg3D, temp, t, i, F, ni, nf, weight='E')
         MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='V')
         MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='M')
-        #MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='E')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, i, F, ni, nf, weight='E')
         # Explicitly delete variables to free memory
         del temp
         gc.collect()
@@ -608,7 +610,7 @@ def main():
         #MakeJointPDFs(den, temp_spaceavg3D, temp, t, n, F, ni, nf, weight='E')
         MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='V')
         MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='M')
-        #MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='E')
+        MakeJointPDFs_prs_temp(prs, den, temp, t, n, F, ni, nf, weight='E')
         # Clean up memory
         del temp
         gc.collect()
@@ -617,7 +619,7 @@ def main():
 
     if rank == 0:
         import subprocess
-        for i in ["V", "M"]:#, "E"]:
+        for i in ["V", "M", "E"]:
             """subprocess.run([
                 'ffmpeg', '-y',
                 '-framerate', '10',
@@ -639,7 +641,7 @@ def main():
         if n1 == 0 and n2 == 125 and jump == 1:
             make_steady_joint_PDFs(ni, nf, F, weight='V')
             make_steady_joint_PDFs(ni, nf, F, weight='M')
-            #make_steady_joint_PDFs(ni, nf, F, weight='E')
+            make_steady_joint_PDFs(ni, nf, F, weight='E')
       
 if __name__ == "__main__":
     main()
